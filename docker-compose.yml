@@ -1,0 +1,56 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    image: smart-search-api:local
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SQLITE_PATH: data/db/smart_search.sqlite
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).status == 200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    image: smart-search-worker:local
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SQLITE_PATH: data/db/smart_search.sqlite
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./web/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web/dist:/srv/web:ro
+    depends_on:
+      - api
+    restart: unless-stopped

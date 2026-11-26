@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-search"
+version = "2.0.0.dev0"
+description = "Умный поиск для store.softline.ru (MVP), contract_version 2.0.0-mvp"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "python-ulid>=2.2",
+    "lxml>=5.0",
+    "polars>=0.20",
+    "pandas>=2.1",
+    "pyarrow>=15.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.3",
+    "numpy>=1.26",
+    "pymorphy3>=2.0",
+    "rapidfuzz>=3.5",
+    "symspellpy>=6.7",
+    "sentence-transformers>=2.5",
+    "httpx>=0.26",
+    "trafilatura>=1.8",
+    "pyyaml>=6.0",
+    "pytest>=8.0",
+]
+
+# Репозиторий — не устанавливаемый пакет: код лежит в services/, pipelines/, eval/.
+# pyproject используется только для зависимостей и настроек инструментов.
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "services/api"]
+addopts = "-ra"
