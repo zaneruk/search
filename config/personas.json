@@ -1,0 +1,111 @@
+{
+  "contract_version": "2.0.0-mvp",
+  "data_tier": "simulated",
+  "personas": [
+    {
+      "persona_id": "smb_accountant",
+      "title": "Бухгалтер малого бизнеса",
+      "description": "Небольшая компания, 5–20 рабочих мест. Покупает учётное ПО, электронную подпись и базовую защиту.",
+      "segment": "smb",
+      "page_category_id": "c_demo_accounting_software",
+      "recent_queries": [
+        "1с бухгалтерия",
+        "электронная подпись для отчётности",
+        "антивирус для небольшого офиса"
+      ],
+      "clicked_family_ids": [
+        "f_demo_1c_accounting"
+      ],
+      "purchased_family_ids": [
+        "f_demo_windows_11_pro",
+        "f_demo_kep_certificate"
+      ],
+      "boost_product_types": [
+        "accounting_erp",
+        "ep_certificate",
+        "crypto_csp",
+        "antivirus_endpoint",
+        "office_suite"
+      ]
+    },
+    {
+      "persona_id": "gov_sysadmin",
+      "title": "Сисадмин госкомпании",
+      "description": "Бюджетная организация. Важны реестр отечественного ПО, сертификация ФСТЭК и закупки по 44-ФЗ/223-ФЗ.",
+      "segment": "gov",
+      "page_category_id": "c_demo_domestic_os",
+      "recent_queries": [
+        "отечественная ос для рабочих станций",
+        "сертифицированный по фстэк антивирус",
+        "резервное копирование виртуальных машин"
+      ],
+      "clicked_family_ids": [
+        "f_demo_domestic_office"
+      ],
+      "purchased_family_ids": [
+        "f_demo_domestic_linux_server"
+      ],
+      "boost_product_types": [
+        "os_ru_linux",
+        "office_suite_ru",
+        "antivirus_server",
+        "backup_software",
+        "crypto_csp",
+        "edms_ecm"
+      ]
+    },
+    {
+      "persona_id": "edu_buyer",
+      "title": "Закупщик ВУЗа",
+      "description": "Университет или колледж. Нужны академические лицензии, компьютерные классы и инженерное ПО.",
+      "segment": "edu",
+      "page_category_id": "c_demo_academic_software",
+      "recent_queries": [
+        "академическая лицензия автокад",
+        "лицензии для компьютерного класса",
+        "офисный пакет для школы"
+      ],
+      "clicked_family_ids": [
+        "f_demo_cad_academic_pack"
+      ],
+      "purchased_family_ids": [
+        "f_demo_cad_academic_pack"
+      ],
+      "boost_product_types": [
+        "cad_2d_3d",
+        "office_suite",
+        "graphics_design",
+        "dev_tools",
+        "workstation_pc",
+        "training_course"
+      ]
+    },
+    {
+      "persona_id": "enterprise_ciso",
+      "title": "CISO крупной компании",
+      "description": "Крупный бизнес. Строит контур информационной безопасности: мониторинг событий, EDR, контроль привилегий.",
+      "segment": "enterprise",
+      "page_category_id": "c_demo_information_security",
+      "recent_queries": [
+        "siem система",
+        "edr для серверов",
+        "pam решение"
+      ],
+      "clicked_family_ids": [
+        "f_demo_edr_enterprise"
+      ],
+      "purchased_family_ids": [
+        "f_demo_edr_enterprise",
+        "f_demo_vulnerability_management"
+      ],
+      "boost_product_types": [
+        "siem",
+        "edr_xdr",
+        "pam_iam",
+        "vuln_scanner",
+        "dlp",
+        "ngfw"
+      ]
+    }
+  ]
+}

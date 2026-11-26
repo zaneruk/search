@@ -32,9 +32,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from ulid import ULID
 
-from app.schemas.admin import EventIn
-from app.schemas.common import ApiError, DegradationLevel, Segment
-from app.schemas.search import SearchRequest, SearchResponse, SuggestResponse
+from services.api.app.schemas.admin import EventIn
+from services.api.app.schemas.common import ApiError, DegradationLevel, Segment
+from services.api.app.schemas.search import SearchRequest, SearchResponse, SuggestResponse
 
 log = logging.getLogger("smart_search.api")
 

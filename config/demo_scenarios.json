@@ -1,0 +1,223 @@
+{
+  "contract_version": "2.0.0-mvp",
+  "scenarios": [
+    {
+      "scenario_id": "gold_01",
+      "kind": "gold10",
+      "label": "Astra Linux",
+      "query": "astra linux",
+      "persona_id": null,
+      "demonstrates": [
+        "brand",
+        "latin_query"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_02",
+      "kind": "gold10",
+      "label": "Microsoft Office для дома и бизнеса",
+      "query": "microsoft office для дома и бизнеса",
+      "persona_id": null,
+      "demonstrates": [
+        "exact_name",
+        "segment_edition"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_03",
+      "kind": "gold10",
+      "label": "Kaspersky Small Office Security",
+      "query": "kaspersky small office security",
+      "persona_id": null,
+      "demonstrates": [
+        "exact_name",
+        "brand_attr"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_04",
+      "kind": "gold10",
+      "label": "КриптоПро CSP 5.0",
+      "query": "крипто про csp 5.0",
+      "persona_id": null,
+      "demonstrates": [
+        "split_join",
+        "version_number",
+        "translit"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_05",
+      "kind": "gold10",
+      "label": "AnyDesk",
+      "query": "anydesk",
+      "persona_id": null,
+      "demonstrates": [
+        "brand",
+        "possible_catalog_gap"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_06",
+      "kind": "gold10",
+      "label": "Кибер Бэкап",
+      "query": "кибер бэкап",
+      "persona_id": null,
+      "demonstrates": [
+        "translit",
+        "brand",
+        "backup"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_07",
+      "kind": "gold10",
+      "label": "Сканер-ВС",
+      "query": "сканер-вс",
+      "persona_id": null,
+      "demonstrates": [
+        "hyphenated_name",
+        "security"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_08",
+      "kind": "gold10",
+      "label": "МТС",
+      "query": "мтс",
+      "persona_id": null,
+      "demonstrates": [
+        "short_brand",
+        "possible_non_product_intent"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_09",
+      "kind": "gold10",
+      "label": "MaxPatrol",
+      "query": "max patrol",
+      "persona_id": null,
+      "demonstrates": [
+        "split_join",
+        "security",
+        "latin_query"
+      ],
+      "expectation": "Целевая страница задана в eval/datasets/gold_map.csv; замер идёт по GOLD10-check."
+    },
+    {
+      "scenario_id": "gold_10",
+      "kind": "gold10",
+      "label": "365",
+      "query": "365",
+      "persona_id": null,
+      "demonstrates": [
+        "numeric_only",
+        "brand_alias"
+      ],
+      "expectation": "Цель: /microsoft/microsoft-365-for-family/ (см. eval/datasets/gold_map.csv). Находится через индексацию токенов названия и эмбеддинги, без записи в глоссарий."
+    },
+    {
+      "scenario_id": "showcase_01",
+      "kind": "showcase",
+      "label": "Сервер",
+      "query": "сервер",
+      "persona_id": null,
+      "demonstrates": [
+        "head_noun_hardware",
+        "sections_by_class"
+      ],
+      "expectation": "Приоритет у серверного оборудования, облачные серверы и ПО для серверов показаны отдельными секциями."
+    },
+    {
+      "scenario_id": "showcase_02",
+      "kind": "showcase",
+      "label": "Антивирь",
+      "query": "антивирь",
+      "persona_id": null,
+      "demonstrates": [
+        "slang"
+      ],
+      "expectation": "Сленг раскрывается в «антивирус», выдача — антивирусные решения."
+    },
+    {
+      "scenario_id": "showcase_03",
+      "kind": "showcase",
+      "label": "Винда",
+      "query": "винда",
+      "persona_id": null,
+      "demonstrates": [
+        "slang"
+      ],
+      "expectation": "Сленг раскрывается в «windows»: клиентские ОС выше серверных."
+    },
+    {
+      "scenario_id": "showcase_04",
+      "kind": "showcase",
+      "label": "МДаемон",
+      "query": "мдаемон",
+      "persona_id": "smb_accountant",
+      "demonstrates": [
+        "translit",
+        "external_product"
+      ],
+      "expectation": "Транслит раскрывается в MDaemon; продукта нет в каталоге, показываются навигационный хит и аналоги из каталога."
+    },
+    {
+      "scenario_id": "showcase_05",
+      "kind": "showcase",
+      "label": "ghbdtn",
+      "query": "ghbdtn",
+      "persona_id": null,
+      "demonstrates": [
+        "layout_fix",
+        "nonsense_fill"
+      ],
+      "expectation": "Подсказка исправления раскладки; нетоварный запрос — лестница S10 всё равно возвращает не меньше 4 family с fill_reason."
+    },
+    {
+      "scenario_id": "showcase_06",
+      "kind": "showcase",
+      "label": "Защита серверов от шифровальщиков",
+      "query": "чем защитить серверы от шифровальщиков",
+      "persona_id": "enterprise_ciso",
+      "demonstrates": [
+        "nl_task",
+        "llm_escalation",
+        "multi_section"
+      ],
+      "expectation": "Эскалация к LLM-QU при низкой уверенности правил; секции: защита серверов, EDR, резервное копирование."
+    },
+    {
+      "scenario_id": "showcase_07",
+      "kind": "showcase",
+      "label": "Аналог Microsoft Office",
+      "query": "аналог microsoft office",
+      "persona_id": "gov_sysadmin",
+      "demonstrates": [
+        "relational",
+        "analog_of"
+      ],
+      "expectation": "Релятивный интент: российские офисные пакеты и облачные подписки как аналоги."
+    },
+    {
+      "scenario_id": "showcase_08",
+      "kind": "showcase",
+      "label": "1С на Linux",
+      "query": "1с на linux",
+      "persona_id": "smb_accountant",
+      "demonstrates": [
+        "relational",
+        "platform_constraint"
+      ],
+      "expectation": "Ограничение платформы linux применяется к учётному ПО; при отсутствии прямого совпадения — чипы уточнения и лестница."
+    }
+  ]
+}

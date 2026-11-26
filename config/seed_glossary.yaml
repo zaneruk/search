@@ -1,0 +1,263 @@
+schema_version: 1
+contract_version: "2.0.0-mvp"
+
+noise_tokens: ["купить", "цена", "цены", "стоимость", "скачать", "заказать", "недорого", "дешево", "дёшево", "онлайн", "интернет-магазин", "где купить", "сколько стоит", "в москве", "в россии"]
+
+slang:
+  - {term: "винда", canonical: ["windows"], product_types: ["os_desktop"]}
+  - {term: "антивирь", canonical: ["антивирус"], product_types: ["antivirus_endpoint"]}
+  - {term: "антивирусник", canonical: ["антивирус"], product_types: ["antivirus_endpoint"]}
+  - {term: "ось", canonical: ["операционная система"], product_types: ["os_desktop", "os_server"]}
+  - {term: "оська", canonical: ["операционная система"], product_types: ["os_desktop", "os_server"]}
+  - {term: "сервак", canonical: ["сервер"], product_types: ["server_hw"]}
+  - {term: "комп", canonical: ["компьютер"], product_types: ["workstation_pc"]}
+  - {term: "ноут", canonical: ["ноутбук"], product_types: ["workstation_pc"]}
+  - {term: "системник", canonical: ["системный блок", "компьютер"], product_types: ["workstation_pc"]}
+  - {term: "свитч", canonical: ["коммутатор"], product_types: ["network_switch_router"]}
+  - {term: "роутер", canonical: ["маршрутизатор"], product_types: ["network_switch_router"]}
+  - {term: "вайфай", canonical: ["wi-fi", "точка доступа"], product_types: ["wifi_access_point"]}
+  - {term: "файрвол", canonical: ["межсетевой экран", "firewall"], product_types: ["ngfw"]}
+  - {term: "фаервол", canonical: ["межсетевой экран", "firewall"], product_types: ["ngfw"]}
+  - {term: "брандмауэр", canonical: ["межсетевой экран", "firewall"], product_types: ["ngfw"]}
+  - {term: "бэкап", canonical: ["резервное копирование", "backup"], product_types: ["backup_software", "cloud_backup_dr"]}
+  - {term: "бекап", canonical: ["резервное копирование", "backup"], product_types: ["backup_software", "cloud_backup_dr"]}
+  - {term: "виртуалка", canonical: ["виртуальная машина", "виртуализация"], product_types: ["virtualization"]}
+  - {term: "терминалка", canonical: ["терминальный сервер", "удалённый рабочий стол"], product_types: ["vdi_terminal"]}
+  - {term: "удаленка", canonical: ["удалённый доступ", "vpn"], product_types: ["remote_access", "vpn_access"]}
+  - {term: "шифровальщик", canonical: ["ransomware", "вымогатель", "защита от шифровальщиков"], product_types: ["edr_xdr", "antivirus_server", "backup_software"]}
+  - {term: "эксель", canonical: ["excel", "microsoft excel"], product_types: ["office_suite"]}
+  - {term: "ворд", canonical: ["word", "microsoft word"], product_types: ["office_suite"]}
+  - {term: "аутлук", canonical: ["outlook", "microsoft outlook"], product_types: ["office_suite", "mail_collab_server"]}
+  - {term: "пауэрпоинт", canonical: ["powerpoint", "microsoft powerpoint"], product_types: ["office_suite"]}
+  - {term: "офис", canonical: ["office", "офисный пакет"], product_types: ["office_suite", "office_suite_ru", "cloud_office_subscription"]}
+  - {term: "лицуха", canonical: ["лицензия"], product_types: []}
+  - {term: "софт", canonical: ["программное обеспечение"], product_types: []}
+  - {term: "1ска", canonical: ["1с:предприятие", "1с"], product_types: ["accounting_erp"]}
+  - {term: "зуп", canonical: ["1с зарплата и управление персоналом"], product_types: ["accounting_erp"]}
+  - {term: "облачко", canonical: ["облако", "облачный сервис"], product_types: ["iaas_cloud", "saas_cloud_app"]}
+  - {term: "хостинг", canonical: ["аренда сервера", "виртуальный сервер"], product_types: ["iaas_cloud"]}
+  - {term: "коробка", canonical: ["box", "коробочная версия"], product_types: []}
+  - {term: "пентест", canonical: ["тестирование на проникновение", "сканер уязвимостей"], product_types: ["vuln_scanner"]}
+  - {term: "кубер", canonical: ["kubernetes"], product_types: ["virtualization", "devops_vcs"]}
+  - {term: "ноутбучок", canonical: ["ноутбук"], product_types: ["workstation_pc"]}
+  - {term: "сервачок", canonical: ["сервер"], product_types: ["server_hw"]}
+
+abbreviations:
+  - {term: "эцп", canonical: ["электронная цифровая подпись", "электронная подпись"], product_types: ["ep_certificate"], match: token}
+  - {term: "эп", canonical: ["электронная подпись"], product_types: ["ep_certificate"], match: token}
+  - {term: "кэп", canonical: ["квалифицированная электронная подпись"], product_types: ["ep_certificate"], match: token}
+  - {term: "скзи", canonical: ["средство криптографической защиты информации", "криптопровайдер"], product_types: ["crypto_csp"], match: token}
+  - {term: "бд", canonical: ["база данных"], product_types: ["dbms"], match: token}
+  - {term: "субд", canonical: ["система управления базами данных"], product_types: ["dbms"], match: token}
+  - {term: "ос", canonical: ["операционная система"], product_types: ["os_desktop", "os_server", "os_ru_linux"], match: token}
+  - {term: "ибп", canonical: ["источник бесперебойного питания", "ups"], product_types: ["ups_power"], match: token}
+  - {term: "мфу", canonical: ["многофункциональное устройство", "принтер"], product_types: ["printer_mfp"], match: token}
+  - {term: "схд", canonical: ["система хранения данных"], product_types: ["storage_san_nas"], match: token}
+  - {term: "сэд", canonical: ["система электронного документооборота"], product_types: ["edms_ecm"], match: token}
+  - {term: "эдо", canonical: ["электронный документооборот"], product_types: ["edms_ecm"], match: token}
+  - {term: "иб", canonical: ["информационная безопасность"], product_types: [], match: token}
+  - {term: "цод", canonical: ["центр обработки данных"], product_types: ["server_hw", "iaas_cloud"], match: token}
+  - {term: "кии", canonical: ["критическая информационная инфраструктура"], product_types: [], match: token}
+  - {term: "фстэк", canonical: ["сертификат фстэк", "сертифицированное средство защиты"], product_types: [], match: token}
+  - {term: "пдн", canonical: ["персональные данные", "защита персональных данных"], product_types: [], match: token}
+  - {term: "пк", canonical: ["персональный компьютер", "компьютер"], product_types: ["workstation_pc"], match: token}
+  - {term: "арм", canonical: ["автоматизированное рабочее место", "рабочая станция"], product_types: ["workstation_pc"], match: token}
+  - {term: "впн", canonical: ["vpn", "виртуальная частная сеть"], product_types: ["vpn_access"], match: token}
+  - {term: "по", canonical: ["программное обеспечение"], product_types: [], match: exact_query}
+  - {term: "vdi", canonical: ["виртуальные рабочие столы", "виртуальная инфраструктура рабочих столов"], product_types: ["vdi_terminal"], match: token}
+  - {term: "mdm", canonical: ["управление мобильными устройствами"], product_types: ["mdm_endpoint_mgmt"], match: token}
+  - {term: "uem", canonical: ["единое управление конечными устройствами"], product_types: ["mdm_endpoint_mgmt"], match: token}
+  - {term: "edr", canonical: ["обнаружение и реагирование на конечных устройствах"], product_types: ["edr_xdr"], match: token}
+  - {term: "xdr", canonical: ["расширенное обнаружение и реагирование"], product_types: ["edr_xdr"], match: token}
+  - {term: "siem", canonical: ["управление событиями информационной безопасности"], product_types: ["siem"], match: token}
+  - {term: "ngfw", canonical: ["межсетевой экран нового поколения"], product_types: ["ngfw"], match: token}
+  - {term: "waf", canonical: ["межсетевой экран веб-приложений"], product_types: ["waf"], match: token}
+  - {term: "dlp", canonical: ["защита от утечек данных"], product_types: ["dlp"], match: token}
+  - {term: "pam", canonical: ["управление привилегированным доступом"], product_types: ["pam_iam"], match: token}
+  - {term: "iam", canonical: ["управление идентификацией и доступом"], product_types: ["pam_iam"], match: token}
+  - {term: "erp", canonical: ["планирование ресурсов предприятия", "учётная система"], product_types: ["accounting_erp"], match: token}
+  - {term: "bi", canonical: ["бизнес-аналитика"], product_types: ["bi_analytics"], match: token}
+  - {term: "ecm", canonical: ["управление корпоративным контентом"], product_types: ["edms_ecm"], match: token}
+  - {term: "itsm", canonical: ["управление ИТ-услугами", "service desk"], product_types: ["itsm_monitoring"], match: token}
+  - {term: "cal", canonical: ["клиентская лицензия доступа", "client access license"], product_types: ["os_server", "mail_collab_server"], match: token}
+  - {term: "rds", canonical: ["службы удалённых рабочих столов", "remote desktop services"], product_types: ["vdi_terminal", "os_server"], match: token}
+  - {term: "esd", canonical: ["электронная лицензия", "электронная поставка"], product_types: [], match: token}
+  - {term: "oem", canonical: ["oem-лицензия", "предустановленная лицензия"], product_types: [], match: token}
+  - {term: "vps", canonical: ["виртуальный выделенный сервер", "виртуальный сервер"], product_types: ["iaas_cloud"], match: token}
+  - {term: "vds", canonical: ["виртуальный выделенный сервер", "виртуальный сервер"], product_types: ["iaas_cloud"], match: token}
+  - {term: "iaas", canonical: ["инфраструктура как услуга", "облачная инфраструктура"], product_types: ["iaas_cloud"], match: token}
+  - {term: "saas", canonical: ["программное обеспечение как услуга", "облачный сервис"], product_types: ["saas_cloud_app"], match: token}
+  - {term: "dr", canonical: ["аварийное восстановление", "disaster recovery"], product_types: ["cloud_backup_dr"], match: token}
+  - {term: "nas", canonical: ["сетевое хранилище"], product_types: ["storage_san_nas"], match: token}
+  - {term: "ssd", canonical: ["твердотельный накопитель"], product_types: ["server_components"], match: token}
+  - {term: "hdd", canonical: ["жёсткий диск"], product_types: ["server_components"], match: token}
+  - {term: "сапр", canonical: ["система автоматизированного проектирования", "cad"], product_types: ["cad_2d_3d"], match: token}
+  - {term: "plm", canonical: ["управление жизненным циклом изделия"], product_types: ["plm_pdm"], match: token}
+  - {term: "pdm", canonical: ["управление инженерными данными"], product_types: ["plm_pdm"], match: token}
+
+translit:
+  - {term: "виндовс", canonical: ["windows"], product_types: ["os_desktop"]}
+  - {term: "майкрософт", canonical: ["microsoft"], product_types: []}
+  - {term: "адоб", canonical: ["adobe"], product_types: ["graphics_design"]}
+  - {term: "фотошоп", canonical: ["photoshop"], product_types: ["graphics_design"]}
+  - {term: "иллюстратор", canonical: ["illustrator"], product_types: ["graphics_design"]}
+  - {term: "автокад", canonical: ["autocad"], product_types: ["cad_2d_3d"]}
+  - {term: "автодеск", canonical: ["autodesk"], product_types: ["cad_2d_3d"]}
+  - {term: "солидворкс", canonical: ["solidworks"], product_types: ["cad_2d_3d"]}
+  - {term: "нанокад", canonical: ["nanocad"], product_types: ["cad_2d_3d"]}
+  - {term: "вмваре", canonical: ["vmware"], product_types: ["virtualization"]}
+  - {term: "хайпер-в", canonical: ["hyper-v"], product_types: ["virtualization"]}
+  - {term: "проксмокс", canonical: ["proxmox"], product_types: ["virtualization"]}
+  - {term: "оракл", canonical: ["oracle"], product_types: ["dbms"]}
+  - {term: "постгрес", canonical: ["postgresql"], product_types: ["dbms"]}
+  - {term: "постгре", canonical: ["postgresql"], product_types: ["dbms"]}
+  - {term: "мускул", canonical: ["mysql"], product_types: ["dbms"]}
+  - {term: "монго", canonical: ["mongodb"], product_types: ["dbms"]}
+  - {term: "линукс", canonical: ["linux"], product_types: ["os_server", "os_desktop", "os_ru_linux"]}
+  - {term: "убунту", canonical: ["ubuntu"], product_types: ["os_desktop", "os_server"]}
+  - {term: "дебиан", canonical: ["debian"], product_types: ["os_server"]}
+  - {term: "редхат", canonical: ["red hat"], product_types: ["os_server"]}
+  - {term: "центос", canonical: ["centos"], product_types: ["os_server"]}
+  - {term: "веам", canonical: ["veeam"], product_types: ["backup_software"]}
+  - {term: "есет", canonical: ["eset"], product_types: ["antivirus_endpoint"]}
+  - {term: "нод32", canonical: ["eset nod32"], product_types: ["antivirus_endpoint"]}
+  - {term: "доктор веб", canonical: ["dr.web"], product_types: ["antivirus_endpoint", "antivirus_server"]}
+  - {term: "битдефендер", canonical: ["bitdefender"], product_types: ["antivirus_endpoint"]}
+  - {term: "симантек", canonical: ["symantec"], product_types: ["antivirus_endpoint"]}
+  - {term: "паломальто", canonical: ["palo alto"], product_types: ["ngfw"]}
+  - {term: "чекпоинт", canonical: ["check point"], product_types: ["ngfw"]}
+  - {term: "фортинет", canonical: ["fortinet"], product_types: ["ngfw"]}
+  - {term: "циско", canonical: ["cisco"], product_types: ["network_switch_router"]}
+  - {term: "джунипер", canonical: ["juniper"], product_types: ["network_switch_router"]}
+  - {term: "хуавей", canonical: ["huawei"], product_types: ["network_switch_router", "server_hw"]}
+  - {term: "делл", canonical: ["dell"], product_types: ["server_hw", "workstation_pc"]}
+  - {term: "леново", canonical: ["lenovo"], product_types: ["server_hw", "workstation_pc"]}
+  - {term: "супермикро", canonical: ["supermicro"], product_types: ["server_hw"]}
+  - {term: "эйчпи", canonical: ["hp"], product_types: ["workstation_pc", "printer_mfp"]}
+  - {term: "зум", canonical: ["zoom"], product_types: ["saas_cloud_app"]}
+  - {term: "тимс", canonical: ["teams"], product_types: ["saas_cloud_app", "cloud_office_subscription"]}
+  - {term: "скайп", canonical: ["skype"], product_types: []}
+  - {term: "слак", canonical: ["slack"], product_types: ["saas_cloud_app"]}
+  - {term: "джира", canonical: ["jira"], product_types: ["project_mgmt", "itsm_monitoring"]}
+  - {term: "конфлюенс", canonical: ["confluence"], product_types: ["saas_cloud_app"]}
+  - {term: "гитлаб", canonical: ["gitlab"], product_types: ["devops_vcs"]}
+  - {term: "гитхаб", canonical: ["github"], product_types: ["devops_vcs"]}
+  - {term: "докер", canonical: ["docker"], product_types: ["devops_vcs", "virtualization"]}
+  - {term: "кубернетес", canonical: ["kubernetes"], product_types: ["devops_vcs", "virtualization"]}
+  - {term: "дженкинс", canonical: ["jenkins"], product_types: ["devops_vcs"]}
+  - {term: "ансибл", canonical: ["ansible"], product_types: ["devops_vcs"]}
+  - {term: "терраформ", canonical: ["terraform"], product_types: ["devops_vcs"]}
+  - {term: "забикс", canonical: ["zabbix"], product_types: ["itsm_monitoring"]}
+  - {term: "заббикс", canonical: ["zabbix"], product_types: ["itsm_monitoring"]}
+  - {term: "графана", canonical: ["grafana"], product_types: ["itsm_monitoring"]}
+  - {term: "битрикс", canonical: ["bitrix"], product_types: ["saas_cloud_app"]}
+  - {term: "рутокен", canonical: ["rutoken"], product_types: ["crypto_token"]}
+  - {term: "джакарта", canonical: ["jacarta"], product_types: ["crypto_token"]}
+  - {term: "тимвьювер", canonical: ["teamviewer"], product_types: ["remote_access"]}
+  - {term: "радмин", canonical: ["radmin"], product_types: ["remote_access"]}
+  - {term: "мдаемон", canonical: ["mdaemon"], product_types: ["mail_collab_server"]}
+  - {term: "эксчендж", canonical: ["exchange"], product_types: ["mail_collab_server"]}
+  - {term: "эксчейндж", canonical: ["exchange"], product_types: ["mail_collab_server"]}
+  - {term: "сием", canonical: ["siem"], product_types: ["siem"]}
+  - {term: "сиэм", canonical: ["siem"], product_types: ["siem"]}
+  - {term: "эдр", canonical: ["edr"], product_types: ["edr_xdr"]}
+  - {term: "пауэршелл", canonical: ["powershell"], product_types: []}
+  - {term: "визио", canonical: ["visio"], product_types: ["office_suite"]}
+  - {term: "аксесс", canonical: ["access"], product_types: ["dbms"]}
+
+numeric_aliases:
+  - {term: "1с", canonical: ["1с:предприятие"], product_types: ["accounting_erp"], confidence: 0.9}
+  - {term: "10", canonical: ["windows 10"], product_types: ["os_desktop"], confidence: 0.45}
+  - {term: "11", canonical: ["windows 11"], product_types: ["os_desktop"], confidence: 0.5}
+  - {term: "2016", canonical: ["windows server 2016"], product_types: ["os_server"], confidence: 0.7, requires_any: ["сервер", "server", "windows", "винда"]}
+  - {term: "2019", canonical: ["windows server 2019"], product_types: ["os_server"], confidence: 0.7, requires_any: ["сервер", "server", "windows", "винда"]}
+  - {term: "2022", canonical: ["windows server 2022"], product_types: ["os_server"], confidence: 0.7, requires_any: ["сервер", "server", "windows", "винда"]}
+  - {term: "2025", canonical: ["windows server 2025"], product_types: ["os_server"], confidence: 0.7, requires_any: ["сервер", "server", "windows", "винда"]}
+  - {term: "2016", canonical: ["office 2016"], product_types: ["office_suite"], confidence: 0.7, requires_any: ["office", "офис", "ворд", "эксель"]}
+  - {term: "2019", canonical: ["office 2019"], product_types: ["office_suite"], confidence: 0.7, requires_any: ["office", "офис", "ворд", "эксель"]}
+  - {term: "2021", canonical: ["office 2021"], product_types: ["office_suite"], confidence: 0.7, requires_any: ["office", "офис", "ворд", "эксель"]}
+  - {term: "2024", canonical: ["office 2024"], product_types: ["office_suite"], confidence: 0.7, requires_any: ["office", "офис", "ворд", "эксель"]}
+  - {term: "152", canonical: ["152-фз", "защита персональных данных"], product_types: [], confidence: 0.6, requires_any: ["фз", "закон", "пдн", "персональные"]}
+  - {term: "187", canonical: ["187-фз", "критическая информационная инфраструктура"], product_types: [], confidence: 0.6, requires_any: ["фз", "кии", "закон"]}
+  - {term: "3д", canonical: ["3d"], product_types: ["cad_2d_3d"], confidence: 0.6, requires_any: ["сапр", "cad", "автокад", "моделирование"]}
+
+layout_confusions:
+  - {term: "fynbdbhec", canonical: ["антивирус"], kind: latin_typed_for_russian, product_types: ["antivirus_endpoint"]}
+  - {term: "dbyljdc", canonical: ["виндовс"], kind: latin_typed_for_russian, product_types: ["os_desktop"]}
+  - {term: "cthdth", canonical: ["сервер"], kind: latin_typed_for_russian, product_types: ["server_hw"]}
+  - {term: "jabc", canonical: ["офис"], kind: latin_typed_for_russian, product_types: ["office_suite"]}
+  - {term: "kbwtypbz", canonical: ["лицензия"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "gjxnf", canonical: ["почта"], kind: latin_typed_for_russian, product_types: ["mail_collab_server"]}
+  - {term: "ghbynth", canonical: ["принтер"], kind: latin_typed_for_russian, product_types: ["printer_mfp"]}
+  - {term: "ghjuhfvvf", canonical: ["программа"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "ghjlktybt", canonical: ["продление"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "gjlgbcrf", canonical: ["подписка"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "cthnbabrfn", canonical: ["сертификат"], kind: latin_typed_for_russian, product_types: ["ep_certificate"]}
+  - {term: "pfobnf", canonical: ["защита"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "htpthdyjt", canonical: ["резервное"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "ctnm", canonical: ["сеть"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "ibahjdfybt", canonical: ["шифрование"], kind: latin_typed_for_russian, product_types: []}
+  - {term: "цштвщцы", canonical: ["windows"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "ыукмук", canonical: ["server"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "щаашсу", canonical: ["office"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "фтешмшкгы", canonical: ["antivirus"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "ифслгз", canonical: ["backup"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "дштгч", canonical: ["linux"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "мьцфку", canonical: ["vmware"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "щкфсду", canonical: ["oracle"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "учсуд", canonical: ["excel"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "цщкв", canonical: ["word"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "ьшскщыщае", canonical: ["microsoft"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "фвщиу", canonical: ["adobe"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "фгещсфв", canonical: ["autocad"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "вщслук", canonical: ["docker"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "мууфь", canonical: ["veeam"], kind: russian_typed_for_latin, product_types: []}
+  - {term: "ашкуцфдд", canonical: ["firewall"], kind: russian_typed_for_latin, product_types: []}
+
+synonym_groups:
+  - ["лицензия", "лицензионный ключ", "ключ активации", "license"]
+  - ["продление", "продлить", "пролонгация", "renewal"]
+  - ["подписка", "subscription"]
+  - ["сервер", "server"]
+  - ["резервное копирование", "бэкап", "бекап", "backup"]
+  - ["шифровальщик", "вымогатель", "ransomware", "троян-шифровальщик"]
+  - ["антивирус", "antivirus", "защита от вирусов"]
+  - ["межсетевой экран", "файрвол", "фаервол", "брандмауэр", "firewall"]
+  - ["удалённый доступ", "удалённое подключение", "remote access"]
+  - ["электронная подпись", "цифровая подпись", "эцп", "эп"]
+  - ["виртуализация", "гипервизор", "virtualization"]
+  - ["облако", "облачный", "cloud"]
+  - ["обновление", "апдейт", "апгрейд", "update", "upgrade"]
+  - ["документооборот", "сэд", "эдо"]
+  - ["база данных", "бд", "субд"]
+
+markers:
+  relational_intent:
+    analog_of: ["аналог", "аналоги", "замена", "альтернатива", "вместо", "чем заменить", "импортозамещение"]
+  platform:
+    linux: ["linux", "линукс", "на linux", "для linux", "на линуксе"]
+    windows: ["windows", "для windows", "на windows"]
+    macos: ["macos", "mac os", "для mac", "на mac"]
+  ru_registry: ["отечественное", "отечественный", "российское", "российский", "в реестре", "реестр минцифры", "импортозамещение"]
+  segment:
+    personal: ["для дома", "домашний", "для личного использования"]
+    edu: ["для школы", "для вуза", "для университета", "академическая", "образовательная", "учебная"]
+    gov: ["для госорганов", "госзакупки", "бюджетное учреждение", "44-фз", "223-фз"]
+    smb: ["для малого бизнеса", "для небольшой компании", "для малого офиса"]
+    enterprise: ["для крупных компаний", "корпоративная", "enterprise"]
+  license_term_months:
+    "12": ["на год", "1 год", "годовая", "12 месяцев"]
+    "24": ["на 2 года", "2 года", "24 месяца"]
+    "36": ["на 3 года", "3 года", "36 месяцев"]
+  license_type:
+    oem: ["oem"]
+    box: ["box", "коробочная", "коробка"]
+    esd: ["esd", "электронная лицензия", "электронный ключ"]
+    subscription: ["подписка", "ежемесячно"]
+    perpetual: ["бессрочная", "навсегда"]
+    renewal: ["продление", "продлить", "renewal"]
+  quantity_patterns:
+    - {unit: users, regex: "(\\d{1,5})\\s*(?:пользовател\\w*|юзер\\w*|user\\w*|лиценз\\w*|мест\\w*)"}
+    - {unit: devices, regex: "(\\d{1,5})\\s*(?:пк|устройств\\w*|компьютер\\w*|рабочих мест\\w*|узл\\w*)"}
+    - {unit: servers, regex: "(\\d{1,4})\\s*(?:сервер\\w*)"}
+    - {unit: cores, regex: "(\\d{1,4})\\s*(?:ядер|ядра|ядро|core\\w*)"}

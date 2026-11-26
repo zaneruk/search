@@ -1,0 +1,556 @@
+schema_version: 1
+contract_version: "2.0.0-mvp"
+
+product_classes:
+  "software": {section_title_ru: "Программное обеспечение"}
+  "hardware": {section_title_ru: "Оборудование"}
+  "cloud_service": {section_title_ru: "Облачные сервисы"}
+  "subscription": {section_title_ru: "Подписки"}
+  "certificate": {section_title_ru: "Сертификаты и электронная подпись"}
+  "training/webinar": {section_title_ru: "Обучение и вебинары"}
+  "other": {section_title_ru: "Прочее"}
+
+price_units:
+  per_user_year: "цена за пользователя в год"
+  per_device_year: "цена за устройство в год"
+  per_server_year: "цена за сервер в год"
+  per_core_year: "цена за ядро в год"
+  per_item: "цена за штуку / единицу лицензии"
+  per_month_flat: "ежемесячная плата за ресурс или тариф"
+  per_course: "цена за курс или мероприятие"
+
+cross_sell_rules:
+  complements:
+    "software": ["software", "hardware", "subscription", "certificate", "cloud_service", "training/webinar"]
+    "hardware": ["software", "hardware", "cloud_service", "subscription", "certificate"]
+    "cloud_service": ["software", "cloud_service", "subscription", "training/webinar"]
+    "subscription": ["software", "subscription", "cloud_service", "training/webinar"]
+    "certificate": ["software", "hardware"]
+    "training/webinar": ["software", "training/webinar"]
+  upsell_to:
+    "software": ["software", "subscription", "cloud_service"]
+    "hardware": ["hardware", "subscription"]
+    "cloud_service": ["cloud_service"]
+    "subscription": ["subscription", "software"]
+    "certificate": ["certificate"]
+    "training/webinar": ["training/webinar"]
+  analog_of:
+    "software": ["software", "subscription", "cloud_service"]
+    "subscription": ["subscription", "software", "cloud_service"]
+    "cloud_service": ["cloud_service", "software", "subscription"]
+    "hardware": ["hardware"]
+    "certificate": ["certificate"]
+    "training/webinar": ["training/webinar"]
+  limits: {max_items_total: 6, max_per_relation: 3, max_per_source_type: 2}
+
+head_noun_priors:
+  "сервер": {default_product_type: server_hw, class_probs: {"hardware": 0.72, "cloud_service": 0.18, "software": 0.1}}
+  "хранилище": {default_product_type: storage_san_nas, class_probs: {"hardware": 0.55, "cloud_service": 0.35, "software": 0.1}}
+  "облако": {default_product_type: iaas_cloud, class_probs: {"cloud_service": 0.85, "subscription": 0.15}}
+  "защита": {default_product_type: antivirus_endpoint, class_probs: {"software": 0.8, "hardware": 0.2}}
+  "почта": {default_product_type: mail_collab_server, class_probs: {"software": 0.45, "subscription": 0.4, "cloud_service": 0.15}}
+  "принтер": {default_product_type: printer_mfp, class_probs: {"hardware": 0.95, "software": 0.05}}
+  "подпись": {default_product_type: ep_certificate, class_probs: {"certificate": 0.7, "software": 0.3}}
+  "резервное копирование": {default_product_type: backup_software, class_probs: {"software": 0.65, "cloud_service": 0.35}}
+
+product_types:
+  os_desktop:
+    title_ru: "Клиентские операционные системы"
+    product_class: "software"
+    group: os
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_device_year
+    head_nouns: ["операционная система", "ос"]
+    complements: ["office_suite", "antivirus_endpoint", "backup_software", "pdf_tools", "mdm_endpoint_mgmt"]
+    upsell_to: []
+    analog_of: ["os_ru_linux"]
+  os_server:
+    title_ru: "Серверные операционные системы"
+    product_class: "software"
+    group: os
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_core_year
+    head_nouns: ["серверная ос"]
+    complements: ["virtualization", "backup_software", "antivirus_server", "server_hw", "dbms"]
+    upsell_to: []
+    analog_of: ["os_ru_linux"]
+  os_ru_linux:
+    title_ru: "Отечественные ОС на базе Linux"
+    product_class: "software"
+    group: os
+    segments: ["gov", "enterprise", "edu"]
+    price_unit: per_device_year
+    head_nouns: ["отечественная ос", "российская ос"]
+    complements: ["office_suite_ru", "antivirus_endpoint", "crypto_csp", "backup_software", "virtualization"]
+    upsell_to: []
+    analog_of: ["os_desktop", "os_server"]
+  office_suite:
+    title_ru: "Офисные пакеты"
+    product_class: "software"
+    group: office
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_user_year
+    head_nouns: ["офисный пакет", "офис"]
+    complements: ["os_desktop", "pdf_tools", "antivirus_endpoint", "mail_collab_server"]
+    upsell_to: ["cloud_office_subscription"]
+    analog_of: ["office_suite_ru", "cloud_office_subscription"]
+  office_suite_ru:
+    title_ru: "Российские офисные пакеты"
+    product_class: "software"
+    group: office
+    segments: ["gov", "enterprise", "edu", "smb"]
+    price_unit: per_user_year
+    head_nouns: ["российский офис"]
+    complements: ["os_ru_linux", "edms_ecm", "pdf_tools", "crypto_csp"]
+    upsell_to: []
+    analog_of: ["office_suite", "cloud_office_subscription"]
+  cloud_office_subscription:
+    title_ru: "Облачные офисные подписки"
+    product_class: "subscription"
+    group: office
+    segments: ["smb", "enterprise", "edu", "personal"]
+    price_unit: per_user_year
+    head_nouns: ["подписка на офис"]
+    complements: ["antivirus_endpoint", "cloud_backup_dr", "mdm_endpoint_mgmt", "training_course"]
+    upsell_to: []
+    analog_of: ["office_suite", "office_suite_ru", "mail_collab_server"]
+  mail_collab_server:
+    title_ru: "Почтовые и коллаборационные серверы"
+    product_class: "software"
+    group: office
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["почтовый сервер"]
+    complements: ["antivirus_server", "backup_software", "os_server", "vpn_access"]
+    upsell_to: ["cloud_office_subscription"]
+    analog_of: ["cloud_office_subscription"]
+  antivirus_endpoint:
+    title_ru: "Антивирусы для рабочих станций"
+    product_class: "software"
+    group: security
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_device_year
+    head_nouns: ["антивирус"]
+    complements: ["backup_software", "mdm_endpoint_mgmt", "vpn_access", "training_course"]
+    upsell_to: ["edr_xdr"]
+    analog_of: []
+  antivirus_server:
+    title_ru: "Защита серверов и виртуальных сред"
+    product_class: "software"
+    group: security
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_server_year
+    head_nouns: ["защита серверов"]
+    complements: ["backup_software", "virtualization", "vuln_scanner", "siem"]
+    upsell_to: ["edr_xdr"]
+    analog_of: []
+  edr_xdr:
+    title_ru: "EDR и XDR"
+    product_class: "software"
+    group: security
+    segments: ["enterprise", "gov"]
+    price_unit: per_device_year
+    head_nouns: ["edr", "xdr"]
+    complements: ["siem", "vuln_scanner", "pam_iam", "training_course"]
+    upsell_to: []
+    analog_of: []
+  dlp:
+    title_ru: "DLP-системы"
+    product_class: "software"
+    group: security
+    segments: ["enterprise", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["dlp", "защита от утечек"]
+    complements: ["siem", "edr_xdr", "edms_ecm"]
+    upsell_to: []
+    analog_of: []
+  siem:
+    title_ru: "SIEM и мониторинг ИБ"
+    product_class: "software"
+    group: security
+    segments: ["enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["siem"]
+    complements: ["vuln_scanner", "edr_xdr", "ngfw", "itsm_monitoring"]
+    upsell_to: []
+    analog_of: []
+  vuln_scanner:
+    title_ru: "Сканеры уязвимостей и контроль защищённости"
+    product_class: "software"
+    group: security
+    segments: ["enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["сканер уязвимостей"]
+    complements: ["siem", "waf", "ngfw", "training_course"]
+    upsell_to: ["siem"]
+    analog_of: []
+  ngfw:
+    title_ru: "Межсетевые экраны"
+    product_class: "hardware"
+    group: security
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["межсетевой экран"]
+    complements: ["vpn_access", "siem", "network_switch_router", "waf"]
+    upsell_to: []
+    analog_of: []
+  waf:
+    title_ru: "Защита веб-приложений (WAF)"
+    product_class: "software"
+    group: security
+    segments: ["enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["waf"]
+    complements: ["vuln_scanner", "ngfw", "siem"]
+    upsell_to: []
+    analog_of: []
+  pam_iam:
+    title_ru: "Управление доступом и привилегиями (PAM/IAM)"
+    product_class: "software"
+    group: security
+    segments: ["enterprise", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["pam", "iam"]
+    complements: ["siem", "edr_xdr", "crypto_token"]
+    upsell_to: []
+    analog_of: []
+  vpn_access:
+    title_ru: "VPN и защищённый удалённый доступ"
+    product_class: "software"
+    group: security
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["vpn", "впн"]
+    complements: ["ngfw", "crypto_csp", "antivirus_endpoint", "remote_access"]
+    upsell_to: []
+    analog_of: []
+  crypto_csp:
+    title_ru: "Криптопровайдеры и СКЗИ"
+    product_class: "software"
+    group: crypto
+    segments: ["smb", "enterprise", "gov", "edu"]
+    price_unit: per_item
+    head_nouns: ["скзи", "криптопровайдер"]
+    complements: ["ep_certificate", "crypto_token", "os_desktop"]
+    upsell_to: []
+    analog_of: []
+  ep_certificate:
+    title_ru: "Сертификаты электронной подписи"
+    product_class: "certificate"
+    group: crypto
+    segments: ["smb", "enterprise", "gov", "edu"]
+    price_unit: per_item
+    head_nouns: ["электронная подпись", "эцп"]
+    complements: ["crypto_csp", "crypto_token"]
+    upsell_to: []
+    analog_of: []
+  crypto_token:
+    title_ru: "Токены и смарт-карты"
+    product_class: "hardware"
+    group: crypto
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["токен", "смарт-карта"]
+    complements: ["crypto_csp", "ep_certificate"]
+    upsell_to: []
+    analog_of: []
+  backup_software:
+    title_ru: "Резервное копирование"
+    product_class: "software"
+    group: infrastructure
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_server_year
+    head_nouns: ["резервное копирование", "бэкап"]
+    complements: ["storage_san_nas", "virtualization", "server_hw", "cloud_backup_dr"]
+    upsell_to: ["cloud_backup_dr"]
+    analog_of: ["cloud_backup_dr"]
+  virtualization:
+    title_ru: "Виртуализация"
+    product_class: "software"
+    group: infrastructure
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_core_year
+    head_nouns: ["виртуализация", "гипервизор"]
+    complements: ["server_hw", "storage_san_nas", "backup_software", "os_server", "itsm_monitoring"]
+    upsell_to: ["vdi_terminal"]
+    analog_of: ["iaas_cloud"]
+  vdi_terminal:
+    title_ru: "VDI и терминальный доступ"
+    product_class: "software"
+    group: infrastructure
+    segments: ["enterprise", "gov", "edu"]
+    price_unit: per_user_year
+    head_nouns: ["vdi", "терминальный сервер"]
+    complements: ["virtualization", "server_hw", "vpn_access", "os_server"]
+    upsell_to: []
+    analog_of: ["remote_access"]
+  remote_access:
+    title_ru: "Удалённая поддержка и удалённый доступ"
+    product_class: "software"
+    group: infrastructure
+    segments: ["smb", "enterprise", "edu", "personal"]
+    price_unit: per_user_year
+    head_nouns: ["удалённый доступ", "удалённый рабочий стол"]
+    complements: ["vpn_access", "antivirus_endpoint", "mdm_endpoint_mgmt"]
+    upsell_to: []
+    analog_of: ["vdi_terminal"]
+  dbms:
+    title_ru: "СУБД"
+    product_class: "software"
+    group: infrastructure
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_core_year
+    head_nouns: ["субд", "база данных"]
+    complements: ["backup_software", "server_hw", "os_server", "storage_san_nas"]
+    upsell_to: []
+    analog_of: []
+  itsm_monitoring:
+    title_ru: "ITSM и мониторинг ИТ-инфраструктуры"
+    product_class: "software"
+    group: infrastructure
+    segments: ["enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["мониторинг", "itsm", "service desk"]
+    complements: ["siem", "mdm_endpoint_mgmt", "virtualization"]
+    upsell_to: []
+    analog_of: []
+  mdm_endpoint_mgmt:
+    title_ru: "Управление устройствами и ПО (MDM/UEM)"
+    product_class: "software"
+    group: infrastructure
+    segments: ["enterprise", "gov", "edu"]
+    price_unit: per_device_year
+    head_nouns: ["mdm", "uem"]
+    complements: ["antivirus_endpoint", "itsm_monitoring", "os_desktop"]
+    upsell_to: []
+    analog_of: []
+  dev_tools:
+    title_ru: "Средства разработки"
+    product_class: "software"
+    group: dev
+    segments: ["smb", "enterprise", "edu"]
+    price_unit: per_user_year
+    head_nouns: ["ide", "среда разработки", "компилятор"]
+    complements: ["devops_vcs", "dbms", "training_course"]
+    upsell_to: []
+    analog_of: []
+  devops_vcs:
+    title_ru: "DevOps, CI/CD и контроль версий"
+    product_class: "software"
+    group: dev
+    segments: ["smb", "enterprise"]
+    price_unit: per_user_year
+    head_nouns: ["ci/cd", "git"]
+    complements: ["dev_tools", "virtualization", "iaas_cloud"]
+    upsell_to: []
+    analog_of: []
+  cad_2d_3d:
+    title_ru: "САПР и BIM"
+    product_class: "software"
+    group: engineering
+    segments: ["smb", "enterprise", "edu", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["сапр", "cad", "bim"]
+    complements: ["plm_pdm", "workstation_pc", "pdf_tools", "training_course"]
+    upsell_to: ["plm_pdm"]
+    analog_of: []
+  plm_pdm:
+    title_ru: "PLM/PDM и инженерные данные"
+    product_class: "software"
+    group: engineering
+    segments: ["enterprise", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["plm", "pdm"]
+    complements: ["cad_2d_3d", "server_hw", "dbms"]
+    upsell_to: []
+    analog_of: []
+  graphics_design:
+    title_ru: "Графика, дизайн и видео"
+    product_class: "software"
+    group: design
+    segments: ["smb", "edu", "personal"]
+    price_unit: per_user_year
+    head_nouns: ["графический редактор", "дизайн"]
+    complements: ["workstation_pc", "pdf_tools", "cloud_office_subscription"]
+    upsell_to: []
+    analog_of: []
+  pdf_tools:
+    title_ru: "Работа с PDF и документами"
+    product_class: "software"
+    group: office
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_user_year
+    head_nouns: ["pdf"]
+    complements: ["office_suite", "edms_ecm", "crypto_csp"]
+    upsell_to: []
+    analog_of: []
+  accounting_erp:
+    title_ru: "Бухгалтерия, учёт и ERP"
+    product_class: "software"
+    group: business
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["бухгалтерия", "erp", "учётная система"]
+    complements: ["ep_certificate", "crypto_csp", "edms_ecm", "dbms", "training_course"]
+    upsell_to: []
+    analog_of: []
+  project_mgmt:
+    title_ru: "Управление проектами"
+    product_class: "software"
+    group: business
+    segments: ["smb", "enterprise"]
+    price_unit: per_user_year
+    head_nouns: ["управление проектами"]
+    complements: ["office_suite", "bi_analytics", "saas_cloud_app"]
+    upsell_to: []
+    analog_of: ["saas_cloud_app"]
+  bi_analytics:
+    title_ru: "BI и аналитика данных"
+    product_class: "software"
+    group: business
+    segments: ["enterprise", "smb", "gov"]
+    price_unit: per_user_year
+    head_nouns: ["bi", "аналитика"]
+    complements: ["dbms", "server_hw", "training_course"]
+    upsell_to: []
+    analog_of: []
+  edms_ecm:
+    title_ru: "СЭД, ECM и электронный документооборот"
+    product_class: "software"
+    group: business
+    segments: ["enterprise", "gov", "smb"]
+    price_unit: per_user_year
+    head_nouns: ["сэд", "документооборот", "эдо"]
+    complements: ["crypto_csp", "ep_certificate", "pdf_tools", "storage_san_nas", "office_suite_ru"]
+    upsell_to: []
+    analog_of: []
+  server_hw:
+    title_ru: "Серверы"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "gov", "edu"]
+    price_unit: per_item
+    head_nouns: ["сервер"]
+    complements: ["os_server", "virtualization", "backup_software", "server_components", "ups_power", "storage_san_nas", "network_switch_router"]
+    upsell_to: []
+    analog_of: []
+  workstation_pc:
+    title_ru: "Компьютеры, ноутбуки и рабочие станции"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_item
+    head_nouns: ["компьютер", "ноутбук", "моноблок", "пк", "рабочая станция"]
+    complements: ["os_desktop", "office_suite", "antivirus_endpoint", "ups_power", "printer_mfp"]
+    upsell_to: []
+    analog_of: []
+  storage_san_nas:
+    title_ru: "Системы хранения данных"
+    product_class: "hardware"
+    group: hardware
+    segments: ["enterprise", "gov", "smb"]
+    price_unit: per_item
+    head_nouns: ["схд", "система хранения", "nas"]
+    complements: ["server_hw", "backup_software", "network_switch_router", "ups_power"]
+    upsell_to: []
+    analog_of: []
+  network_switch_router:
+    title_ru: "Коммутаторы и маршрутизаторы"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "gov", "edu"]
+    price_unit: per_item
+    head_nouns: ["коммутатор", "маршрутизатор", "свитч", "роутер"]
+    complements: ["wifi_access_point", "ngfw", "ups_power"]
+    upsell_to: []
+    analog_of: []
+  wifi_access_point:
+    title_ru: "Wi-Fi оборудование"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "edu"]
+    price_unit: per_item
+    head_nouns: ["wi-fi", "точка доступа"]
+    complements: ["network_switch_router", "ngfw"]
+    upsell_to: []
+    analog_of: []
+  ups_power:
+    title_ru: "ИБП и системы питания"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["ибп", "источник бесперебойного питания"]
+    complements: ["server_hw", "network_switch_router", "storage_san_nas"]
+    upsell_to: []
+    analog_of: []
+  printer_mfp:
+    title_ru: "Принтеры и МФУ"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_item
+    head_nouns: ["принтер", "мфу"]
+    complements: ["workstation_pc", "edms_ecm"]
+    upsell_to: []
+    analog_of: []
+  server_components:
+    title_ru: "Комплектующие для серверов"
+    product_class: "hardware"
+    group: hardware
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_item
+    head_nouns: ["жёсткий диск", "оперативная память", "ssd"]
+    complements: ["server_hw", "storage_san_nas"]
+    upsell_to: []
+    analog_of: []
+  iaas_cloud:
+    title_ru: "IaaS: облачные серверы и инфраструктура"
+    product_class: "cloud_service"
+    group: cloud
+    segments: ["smb", "enterprise", "gov", "edu"]
+    price_unit: per_month_flat
+    head_nouns: ["облако", "виртуальный сервер", "vps", "хостинг"]
+    complements: ["cloud_backup_dr", "vpn_access", "saas_cloud_app", "os_server"]
+    upsell_to: []
+    analog_of: ["virtualization"]
+  saas_cloud_app:
+    title_ru: "SaaS-сервисы"
+    product_class: "cloud_service"
+    group: cloud
+    segments: ["smb", "enterprise", "edu", "personal"]
+    price_unit: per_user_year
+    head_nouns: ["saas", "облачный сервис"]
+    complements: ["cloud_backup_dr", "training_course", "edms_ecm"]
+    upsell_to: []
+    analog_of: ["project_mgmt"]
+  cloud_backup_dr:
+    title_ru: "Облачное резервное копирование и DR"
+    product_class: "cloud_service"
+    group: cloud
+    segments: ["smb", "enterprise", "gov"]
+    price_unit: per_month_flat
+    head_nouns: ["облачный бэкап", "disaster recovery"]
+    complements: ["iaas_cloud", "backup_software"]
+    upsell_to: []
+    analog_of: ["backup_software"]
+  training_course:
+    title_ru: "Обучение и курсы"
+    product_class: "training/webinar"
+    group: training
+    segments: ["smb", "enterprise", "gov", "edu"]
+    price_unit: per_course
+    head_nouns: ["курс", "обучение"]
+    complements: ["webinar_event"]
+    upsell_to: []
+    analog_of: ["webinar_event"]
+  webinar_event:
+    title_ru: "Вебинары и мероприятия"
+    product_class: "training/webinar"
+    group: training
+    segments: ["smb", "enterprise", "gov", "edu", "personal"]
+    price_unit: per_course
+    head_nouns: ["вебинар", "конференция"]
+    complements: ["training_course"]
+    upsell_to: []
+    analog_of: ["training_course"]

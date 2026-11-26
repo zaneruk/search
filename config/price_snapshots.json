@@ -1,0 +1,74 @@
+{
+  "contract_version": "2.0.0-mvp",
+  "price_date": "2026-11-26",
+  "usd_to_rub": {
+    "rate": 82.1265,
+    "source": "Банк России, официальный курс USD, установленный 26.11.2026 на 27.11.2026",
+    "source_url": "https://www.cbr.ru/currency_base/daily/",
+    "reference_url": "https://1prime.ru/20261126/tsb-875593772.html"
+  },
+  "snapshots": [
+    {
+      "snapshot_id": "ps_20261126_deepseek_flash",
+      "created_at": "2026-11-26T12:00:00Z",
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "usd_per_mtok_in": 0.3,
+      "usd_per_mtok_cached": 0.006,
+      "usd_per_mtok_out": 1.2,
+      "usd_to_rub": 82.1265,
+      "price_source_url": "https://www.aipricing.guru/models/deepseek-v4-flash/",
+      "model_name": "DeepSeek V4.1 Flash",
+      "context_tokens": 1000000,
+      "pricing_tier": "peak",
+      "off_peak": {
+        "usd_per_mtok_in": 0.15,
+        "usd_per_mtok_cached": 0.003,
+        "usd_per_mtok_out": 0.6
+      },
+      "peak_windows_utc": "Пн–Пт 01:00–04:00 и 06:00–10:00; выходные и праздники КНР — вне пика",
+      "notes": "В основу взят пиковый тариф как консервативный для бюджета."
+    },
+    {
+      "snapshot_id": "ps_20261126_qwen36_35b",
+      "created_at": "2026-11-26T12:00:00Z",
+      "provider": "novita",
+      "model": "qwen/qwen3.6-35b-a3b",
+      "usd_per_mtok_in": 0.248,
+      "usd_per_mtok_cached": 0.248,
+      "usd_per_mtok_out": 1.49,
+      "usd_to_rub": 82.1265,
+      "price_source_url": "https://www.aipricing.guru/models/novita-qwen-qwen3-6-35b-a3b/",
+      "model_name": "Qwen3.6 35B A3B",
+      "context_tokens": 262144,
+      "notes": "Тариф кэша у провайдера не опубликован: cached приравнен к input. У других провайдеров цена заметно отличается (вход 0.05–0.375, выход 0.70–2.25 USD), при работе через OpenRouter фиксируйте провайдера."
+    },
+    {
+      "snapshot_id": "ps_20261126_alice_flash",
+      "created_at": "2026-11-26T12:00:00Z",
+      "provider": "yandex_ai_studio",
+      "model": "aliceai-llm-flash",
+      "usd_per_mtok_in": 1.217634,
+      "usd_per_mtok_cached": 0.304408,
+      "usd_per_mtok_out": 2.435268,
+      "usd_to_rub": 82.1265,
+      "price_source_url": "https://aistudio.yandex.ru/docs/en/ai-studio/pricing",
+      "model_name": "Alice AI LLM Flash",
+      "context_tokens": 65536,
+      "native_currency": "RUB",
+      "native_rub_per_1k_tokens": {
+        "in": 0.1,
+        "cached": 0.025,
+        "out": 0.2
+      },
+      "native_rub_per_mtok": {
+        "in": 100,
+        "cached": 25,
+        "out": 200
+      },
+      "includes_vat": true,
+      "native_price_reference_url": "https://ai-journal.ru/yandexgpt/",
+      "notes": "Рублёвый тариф для договора с российским юрлицом, синхронный режим. USD-значения получены делением рублёвых на usd_to_rub и при пересчёте обратно дают исходные рубли."
+    }
+  ]
+}

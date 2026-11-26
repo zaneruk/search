@@ -1,0 +1,181 @@
+schema_version: 1
+contract_version: "2.0.0-mvp"
+
+bm25f:
+  k1: 1.2
+  field_weights:
+    name_head: 3.0
+    brand: 2.0
+    category_path: 1.5
+    aliases: 1.2
+    params: 0.8
+    description: 0.4
+    name_target: 0.3
+  field_b:
+    name_head: 0.30
+    brand: 0.00
+    category_path: 0.40
+    aliases: 0.30
+    params: 0.50
+    description: 0.75
+    name_target: 0.50
+
+rrf:
+  k: 60
+
+retrieval:
+  candidate_pool_size: 150
+  lanes:
+    l1_entity:
+      top_k: 50
+      rrf_weight: 1.5
+    l2_bm25f:
+      top_k: 150
+      rrf_weight: 1.0
+    l3_ngram:
+      top_k: 100
+      ngram_size: 3
+      min_similarity: 0.35
+      rrf_weight: 0.6
+    l4_dense:
+      top_k: 100
+      min_cosine: 0.30
+      rrf_weight: 0.8
+    l5_type:
+      top_k: 60
+      rrf_weight: 0.7
+
+spelling:
+  symspell:
+    max_edit_distance: 2
+    prefix_length: 7
+    min_token_len_edit1: 4
+    min_token_len_edit2: 8
+  autocorrect:
+    accept_confidence: 0.85
+    protect_exact_name_and_brand: true
+    max_corrected_tokens: 2
+  transliteration_enabled: true
+  layout_fix_enabled: true
+
+qu:
+  qu_confidence_threshold: 0.65
+  llm_timeout_ms: 1500
+  escalate_on_low_confidence: true
+  escalate_on_zero_results: true
+  escalate_min_tokens_for_nl: 5
+  max_candidate_entities: 15
+  max_tokens_out: 150
+  retry_on_invalid_json: 1
+  cache:
+    ttl_seconds: 86400
+    key_parts: [query_norm, ctx_bucket, overlay_version]
+    warm_from_demo_scenarios: true
+
+ranking:
+  weights:
+    rel_fused: 0.34
+    exact_name_match: 0.16
+    brand_match: 0.08
+    availability: 0.10
+    popularity: 0.08
+    margin_proxy: 0.05
+    promo: 0.04
+    version_recency: 0.06
+    segment_fit: 0.09
+  delta_business: 0.08
+  admin_weight_aliases:
+    margin_weight: margin_proxy
+    promo_weight: promo
+    pop_weight: popularity
+  admin_weight_bounds:
+    min_multiplier: 0.0
+    max_multiplier: 3.0
+  context_boost_max: 0.15
+  exact_match_guard:
+    enabled: true
+    min_name_similarity: 0.92
+  features:
+    availability:
+      available: 1.0
+      unavailable: 0.0
+    popularity:
+      transform: log1p
+      source: pop_prior
+    margin_proxy:
+      source: proxy
+      price_tier_scale: [0.2, 0.5, 0.8, 1.0]
+    promo:
+      require_valid_discount: true
+      max_discount_pct: 70
+      min_discount_pct: 5
+    version_recency:
+      half_life_years: 3.0
+      only_within_same_line: true
+    segment_fit:
+      match: 1.0
+      neutral: 0.5
+      mismatch: 0.0
+
+compose:
+  mmr_lambda: 0.75
+  max_items_per_section: 8
+  max_per_vendor_in_top4: 2
+  section_order: [hardware, software, cloud_service, subscription, certificate, training/webinar, other]
+  badges:
+    available: true
+    on_request: true
+    ru_registry: true
+
+ladder:
+  min_distinct_families: 4
+  tau_soft: 0.35
+  rungs:
+    - {rung: 0, name: primary, description: "кандидаты S5 без смягчения"}
+    - {rung: 1, name: relax_filters, description: "снять фильтры наличия и сегмента"}
+    - {rung: 2, name: spelling_hypotheses, description: "добавить кандидатов по гипотезам написания S3"}
+    - {rung: 3, name: type_neighbors, description: "соседние product_type и dense-соседи того же product_class"}
+    - {rung: 4, name: popular_fallback, description: "популярные family по корню запроса и по категории"}
+  fill_reasons:
+    relax_filters: "Показано без учёта фильтров"
+    spelling_hypotheses: "Похожий запрос"
+    type_neighbors: "Близкий тип продукта"
+    popular_fallback: "Популярное в каталоге"
+
+crosssell:
+  max_items: 6
+  per_relation_max: 3
+  min_confidence: 0.6
+  exclude_purchased: true
+  require_available: true
+  forbid_on_request_primary: true
+  source_priority: [vendor_evidence, catalog_structure, llm_validated, co_click]
+
+price_badge:
+  min_compared: 3
+  min_advantage_pct: 10.0
+  unit: price_per_user_year_minor
+
+suggest:
+  min_prefix_len: 2
+  max_completions: 8
+  max_products: 4
+  layout_fix: true
+  debounce_ms_hint: 120
+
+degradation:
+  L0: {llm: true, dense: true, overlay: true, db: true}
+  L1: {llm: false, dense: true, overlay: true, db: true}
+  L2: {llm: false, dense: false, overlay: true, db: true}
+  L3: {llm: false, dense: false, overlay: false, db: false}
+  budget_exhausted_level: L1
+  breaker:
+    failure_threshold: 5
+    window_seconds: 30
+    open_seconds: 60
+    half_open_probes: 2
+
+slo:
+  suggest_p95_ms: 60
+  search_l1_p95_ms: 400
+  search_l0_p95_ms: 1700
