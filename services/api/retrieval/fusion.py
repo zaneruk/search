@@ -79,11 +79,12 @@ def _load_retrieval_cfg() -> Tuple[int, int, Mapping[str, Dict[str, Any]]]:
 
 
 def run_retrieval(
-    analysis: NlpAnalysis,
+   analysis: NlpAnalysis,
     index_state: IndexState,
     *,
     ctx: Optional[ClientContext] = None,
     disable_dense: bool = False,
+    disable_l5: bool = False,
     degradation: Optional[DegradationManager] = None,
     query_vector_override: Optional[np.ndarray] = None,
 ) -> RetrievalResult:
@@ -105,16 +106,30 @@ def run_retrieval(
         top_k=int(lanes_cfg["l3_ngram"].get("top_k", 100)),
         min_similarity=float(lanes_cfg["l3_ngram"].get("min_similarity", 0.35)),
     )
-    l4_hits, dense_fb = search_l4_dense(
-        analysis,
-        index_state,
-        top_k=int(lanes_cfg["l4_dense"].get("top_k", 100)),
-        min_cosine=float(lanes_cfg["l4_dense"].get("min_cosine", 0.30)),
-        disable_requested=disable_dense,
-        degradation=degradation or get_degradation_manager(),
-        query_vector_override=query_vector_override,
+    strong_lexical = (
+        len(l1_hits) >= 1
+        and len(l2_hits) >= 4
+        and l2_hits[0].score >= 5.5
+        and len(analysis.tokenized) <= 3
+        and not analysis.qu.escalate_to_llm
     )
-    l5_hits = search_l5_type(
+    if strong_lexical and query_vector_override is None:
+        l4_hits, dense_fb = [], False
+    else:
+        l4_hits, dense_fb = search_l4_dense(
+            analysis,
+            index_state,
+            top_k=int(lanes_cfg["l4_dense"].get("top_k", 100)),
+            min_cosine=float(lanes_cfg["l4_dense"].get("min_cosine", 0.30)),
+            disable_requested=disable_dense,
+            degradation=degradation or get_degradation_manager(),
+            query_vector_override=query_vector_override,
+        )
+    
+    #l5_hits = search_l5_type(
+    #    analysis, index_state, top_k=int(lanes_cfg["l5_type"].get("top_k", 60))
+    #)
+    l5_hits = [] if disable_l5 else search_l5_type(
         analysis, index_state, top_k=int(lanes_cfg["l5_type"].get("top_k", 60))
     )
 

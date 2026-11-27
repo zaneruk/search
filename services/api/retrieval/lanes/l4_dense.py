@@ -1,9 +1,4 @@
-"""L4: Dense cosine поиск по `embeddings.npy` (BAAI/bge-m3, 1024-dim, L2-нормированные).
-
-* Модель загружается лениво (потокобезопасно) и проверяется через `DegradationManager`
-  (chaos-тумблер `force_disable_dense` + `dense_breaker` -> режим L2 при падении).
-* Кодированные вектора запросов кэшируются в памяти (LRU 2048).
-"""
+"""L4: Dense cosine поиск по `embeddings.npy` (BAAI/bge-m3, 1024-dim, L2-нормированные)."""
 from __future__ import annotations
 
 import logging
@@ -25,19 +20,21 @@ _model_lock = threading.Lock()
 _models: dict = {}
 _vec_cache: "OrderedDict[Tuple[str, str], np.ndarray]" = OrderedDict()
 _vec_lock = threading.Lock()
-_MAX_VEC_CACHE = 2048
+_MAX_VEC_CACHE = 4096
 
 
 def _load_encoder(model_name: str) -> Any:
     with _model_lock:
         if model_name in _models:
             return _models[model_name]
+        import torch
         from sentence_transformers import SentenceTransformer
 
         device = os.getenv("DENSE_DEVICE", "cpu").strip() or "cpu"
         log.info("loading dense query encoder %s on %s ...", model_name, device)
-        model = SentenceTransformer(model_name, device=device)
-        model.max_seq_length = 128
+        model = SentenceTransformer(model_name, device=device, local_files_only=os.getenv("HF_HUB_OFFLINE") == "1")
+        model.max_seq_length = 96
+        model.eval()
         _models[model_name] = model
         return model
 
@@ -50,14 +47,17 @@ def encode_query(text: str, model_name: str) -> Optional[np.ndarray]:
             _vec_cache.move_to_end(key)
             return cached
 
+    import torch
+
     model = _load_encoder(model_name)
     prefix = "query: " if "e5" in model_name.lower() else ""
-    vec = model.encode(
-        [f"{prefix}{text}"],
-        normalize_embeddings=True,
-        show_progress_bar=False,
-        convert_to_numpy=True,
-    )[0]
+    with torch.inference_mode():
+        vec = model.encode(
+            [f"{prefix}{text}"],
+            normalize_embeddings=True,
+            show_progress_bar=False,
+            convert_to_numpy=True,
+        )[0]
     vec = np.asarray(vec, dtype=np.float32)
     norm = float(np.linalg.norm(vec))
     if norm > 1e-12:
@@ -81,7 +81,6 @@ def search_l4_dense(
     degradation: Optional[DegradationManager] = None,
     query_vector_override: Optional[np.ndarray] = None,
 ) -> Tuple[List[LaneHit], bool]:
-    """Возвращает (hits, fallback_to_l2)."""
     if not index_state.is_loaded or not index_state.has_dense or index_state.embeddings is None:
         return [], False
 

@@ -21,7 +21,7 @@ Retry не выполняется при 401/403, открытом breaker и е
 переходит на правила (режим L1 для запроса).
 """
 from __future__ import annotations
-
+from pathlib import Path
 import asyncio
 import json
 import logging
@@ -677,6 +677,47 @@ def get_gateway() -> LLMGateway:
         return _gateway
 
 # --------------------------------------------------------------------------- sync-совместимость для worker / pipelines
+
+def load_env_file(env_path: Path = Path(".env")) -> None:
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+def get_llm_credentials() -> tuple[str, str, str, str]:
+    load_env_file()
+    provider = os.getenv("LLM_PROVIDER", "yandex").strip().lower()
+    base_url = (
+        os.getenv("LLM_BASE_URL")
+        or os.getenv("OPENAI_BASE_URL")
+        or DEFAULT_BASE_URL
+    ).strip().rstrip("/")
+    api_key = (
+        os.getenv("YANDEX_API_KEY")
+        or os.getenv("LLM_API_KEY")
+        or os.getenv("OPENAI_API_KEY")
+        or ""
+    ).strip()
+    folder_id = os.getenv("YANDEX_FOLDER_ID", "").strip()
+    return provider, base_url, api_key, folder_id
+
+
+def get_role_model_config(role: str) -> tuple[str, Optional[str], int, float]:
+    load_env_file()
+    settings = LLMSettings.from_env()
+    r = role.strip().upper()
+    role_enum = LLMRole(r) if r in LLMRole.__members__ else LLMRole.STRONG
+    m_uri = settings.model_uri(role_enum) if settings.has_model(role_enum) else settings.model_uri(LLMRole.FALLBACK)
+    eff = _reasoning_effort_for(role_enum, m_uri)
+    max_tok = {"FAST": 350, "AGENT": 2000, "STRONG": 900, "SYNTH": 900, "FALLBACK": 900}.get(role_enum.value, 900)
+    tout = (settings.timeout_ms if role_enum is LLMRole.FAST else settings.offline_timeout_ms) / 1000.0
+    return m_uri, eff, max_tok, tout
+
 def call_llm_structured(
     role: str,
     purpose: str,

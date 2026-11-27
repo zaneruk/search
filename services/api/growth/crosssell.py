@@ -40,17 +40,13 @@ def build_cross_sell(
     min_confidence: float = 0.6,
     allow_analog: bool = False,
 ) -> List[CrossSellItem]:
-    if not index_state.is_loaded or index_state.graph_edges is None or index_state.families is None:
-        return []
-    edges_df = index_state.graph_edges
-    if len(edges_df) == 0 or not anchor_family_ids:
+    if not index_state.is_loaded or not anchor_family_ids:
         return []
 
     excluded: Set[str] = set(shown_family_ids) | set(ctx.purchased_family_ids)
     anchors = list(anchor_family_ids[:5])
-
-    sub = edges_df[edges_df["src_family_id"].astype(str).isin(anchors)]
-    if len(sub) == 0:
+    rows = [e for anc in anchors for e in index_state.edges_for(anc)]
+    if not rows:
         return []
 
     allowed_rels = {"complements", "upsell_to", "requires", "integrates_with"}
@@ -60,14 +56,15 @@ def build_cross_sell(
     candidates: List[Tuple[int, float, str, CrossSellItem]] = []
     seen_dst: Set[str] = set()
 
-    for row in sub.to_dict("records"):
+    for row in rows:
         dst_fid = _clean_opt(row.get("dst_family_id"))
         if not dst_fid or dst_fid in excluded or dst_fid in seen_dst:
             continue
         rel = _clean_opt(row.get("edge_type")) or "complements"
         if rel not in allowed_rels:
             continue
-        conf = float(row.get("confidence") or 0.0) if not pd.isna(row.get("confidence")) else 0.0
+        conf_raw = row.get("confidence")
+        conf = float(conf_raw) if conf_raw is not None and not pd.isna(conf_raw) else 0.0
         if conf < min_confidence:
             continue
 
@@ -75,7 +72,8 @@ def build_cross_sell(
         if fam is None:
             continue
 
-        avail = bool(fam.get("available_any")) if not pd.isna(fam.get("available_any")) else False
+        avail_raw = fam.get("available_any")
+        avail = bool(avail_raw) if avail_raw is not None and not pd.isna(avail_raw) else False
         pmin_raw = fam.get("price_min_minor")
         pmin = int(float(pmin_raw)) if pmin_raw is not None and not pd.isna(pmin_raw) else None
 
@@ -87,7 +85,8 @@ def build_cross_sell(
         prio = _SOURCE_PRIORITY.get(src_kind, 4)
         ev_label = _clean_opt(row.get("snippet"))
         ev_url = _clean_opt(row.get("evidence_url"))
-        pop = float(fam.get("pop_prior") or 0.0) if not pd.isna(fam.get("pop_prior")) else 0.0
+        pop_raw = fam.get("pop_prior")
+        pop = float(pop_raw) if pop_raw is not None and not pd.isna(pop_raw) else 0.0
 
         seen_dst.add(dst_fid)
         item = CrossSellItem(

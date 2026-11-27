@@ -2,13 +2,13 @@
 
 Возвращает:
   * ранжированный список family (`LaneHit`) из `target_family_ids` совпавших сущностей;
-  * `nav_hits` (`CATEGORY`, `CONTENT`, `EXTERNAL_PRODUCT`) для блока навигации/баннера;
-  * `out_of_catalog_banner`, если сработал `EXTERNAL_PRODUCT` (даже если в каталоге есть только продления).
+  * `nav_hits` (`EXTERNAL_PRODUCT` -> `CONTENT` -> `CATEGORY`) для блока навигации/баннера;
+  * `out_of_catalog_banner`, если сработал `EXTERNAL_PRODUCT`.
 """
 from __future__ import annotations
 
 import json
-from typing import Any, List, Optional, Tuple, Dict
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
@@ -26,6 +26,12 @@ _KIND_PRIORITY = {
     "external_product": 0.55,
     "content": 0.40,
     "other": 0.50,
+}
+
+_NAV_ORDER = {
+    "EXTERNAL_PRODUCT": 0,
+    "CONTENT": 1,
+    "CATEGORY": 2,
 }
 
 
@@ -78,6 +84,22 @@ def search_l1_entity(
                 if not any(x.ref.entity_id == eh.ref.entity_id for x in hits):
                     hits.append(eh)
 
+    # Добор навигационных сущностей (CONTENT/CATEGORY/EXTERNAL_PRODUCT), если токен внутри фразы
+    if len(analysis.tokenized.lemmas) <= 3:
+        from services.api.nlp.lexicon import EntityHit
+
+        q_toks = set(analysis.tokenized.lemmas)
+        for ref in lex.entities:
+            if ref.kind in ("content", "external_product"):
+                ent_toks = lex.entity_tokens.get(ref.entity_id, frozenset())
+                if q_toks and q_toks.issubset(ent_toks) and not any(x.ref.entity_id == ref.entity_id for x in hits):
+                    hits.append(EntityHit(ref=ref, start=0, end=len(q_toks), surface=" ".join(q_toks), via="token_nav", confidence=0.90))
+        for ref, overlap in lex.entities_for_tokens(analysis.tokenized.lemmas, limit=25):
+            if ref.kind == "category" and overlap > 0.0:
+                ent_toks = lex.entity_tokens.get(ref.entity_id, frozenset())
+                if q_toks and q_toks.issubset(ent_toks) and not any(x.ref.entity_id == ref.entity_id for x in hits):
+                    hits.append(EntityHit(ref=ref, start=0, end=len(q_toks), surface=" ".join(q_toks), via="token_nav", confidence=0.88))
+                    
     query_tokens_set = set(analysis.tokenized.lemmas) | set(analysis.tokenized.texts)
     families_df = index_state.families
     names_col = families_df["canonical_name"].fillna("").astype(str).tolist()
@@ -119,6 +141,17 @@ def search_l1_entity(
         ent_conf = eh.confidence or 0.90
         field_tag = "aliases" if eh.via != "alias" else f"entity:{ref.kind}"
 
+        cat_leaf_bonus = (
+            0.35
+            if (
+                ref.kind == "category"
+                and len(target_fids) == 1
+                and any(len(t) >= 3 for t in query_tokens_set)
+                and all(t in basic_norm(ref.canonical_name) for t in query_tokens_set if len(t) >= 3)
+            )
+            else 0.0
+        )
+
         for fid in target_fids:
             pos = index_state.family_index(fid)
             if pos is None:
@@ -127,7 +160,7 @@ def search_l1_entity(
             tok_overlap = sum(1 for t in query_tokens_set if len(t) >= 2 and t in cname_norm)
             avail_bonus = 0.08 if avail_col[pos] else 0.0
             pop_bonus = min(0.15, float(pop_col[pos]) * 0.05)
-            score = kind_w * ent_conf + 0.12 * tok_overlap + avail_bonus + pop_bonus
+            score = kind_w * ent_conf + 0.12 * tok_overlap + avail_bonus + pop_bonus + cat_leaf_bonus
             prev = fam_scores.get(pos)
             if prev is None or score > prev[0]:
                 fields = list(prev[1]) if prev else []
@@ -146,6 +179,8 @@ def search_l1_entity(
         )
         for pos, (sc, fields) in ranked
     ]
+
+    nav_hits.sort(key=lambda n: (_NAV_ORDER.get(n.kind, 9), n.entity_id))
 
     ooc_banner: Optional[str] = None
     if external_hits:

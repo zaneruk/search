@@ -207,6 +207,7 @@ async def execute_search(
             ctx=req.context,
             disable_dense=req.options.disable_dense,
             degradation=deg,
+            disable_l5=req.options.disable_l5,
         )
         if ret.dense_fallback_l2:
             st.fallback(
@@ -253,6 +254,16 @@ async def execute_search(
         st.set_summary(f"MMR={'выкл (навигационный)' if is_nav else 'вкл'}, кандидатов={len(primary_cards)}")
         st.set_decision("no_mmr" if is_nav else "mmr")
 
+    ooc_banner = ret.out_of_catalog_banner
+    if (
+        not ooc_banner
+        and ret.hard_null
+        and not nq.is_empty
+        and not nq.noise_only
+        and any(len(t) >= 3 and any(c.isalpha() for c in t) for t in nq.tokens)
+    ):
+        ooc_banner = f"По запросу «{nq.query_norm}» точных совпадений в каталоге нет; показаны доступные альтернативы."
+
     # S10. Лестница гарантии >= 4 family + сборка секций
     with trace.step(StepId.S10) as st:
         remaining = [s for s in scored if s not in mmr_selected]
@@ -268,7 +279,7 @@ async def execute_search(
         sections = compose_sections(
             ladder_res.cards,
             analysis,
-            out_of_catalog_banner=ret.out_of_catalog_banner,
+            out_of_catalog_banner=ooc_banner,
         )
         shown_cards = [it for sec in sections for it in sec.items]
         if ladder_res.fill_rung > 0:
@@ -286,7 +297,7 @@ async def execute_search(
             shown_fids,
             req.context,
             idx,
-            allow_analog=bool(ret.out_of_catalog_banner or "analog" in analysis.qu.attrs.modifiers),
+            allow_analog=bool(ooc_banner or "analog" in analysis.qu.attrs.modifiers),
         )
         st.set_summary(f"допродажи={len(cross_sell)}")
         st.add_data(cross_sell_fids=[c.family_id for c in cross_sell])
@@ -316,7 +327,29 @@ async def execute_search(
         hard_null=ret.hard_null,
         soft_null=ladder_res.soft_null,
         fill_rung=ladder_res.fill_rung,
-        out_of_catalog_banner=ret.out_of_catalog_banner,
+        out_of_catalog_banner=ooc_banner,
+        nav_hits=ret.nav_hits,
+        intent_chips=list(analysis.qu.clarification_chips),
+        sections=sections,
+        cross_sell=cross_sell,
+        related_queries=related_queries[:4],
+        trace=trace.to_response(include=req.options.include_trace),
+        cost_meter=cost_meter,
+    )
+    response = SearchResponse(
+        trace_id=tid,
+        query_raw=query_safe,
+        query_norm=nq.query_norm,
+        applied_query=hyps.applied_query,
+        did_you_mean=hyps.did_you_mean,
+        mode="smart",
+        degradation_level=deg_level,
+        config_version=overlay.config_version,
+        index_version=idx.index_version,
+        hard_null=ret.hard_null,
+        soft_null=ladder_res.soft_null,
+        fill_rung=ladder_res.fill_rung,
+        out_of_catalog_banner=ooc_banner,
         nav_hits=ret.nav_hits,
         intent_chips=list(analysis.qu.clarification_chips),
         sections=sections,

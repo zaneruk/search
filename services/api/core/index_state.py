@@ -1,15 +1,4 @@
-"""Загрузка артефактов индекса (B.5) из `data/artifacts/current` или `CURRENT_VERSION`.
-
-* `embeddings.npy` открывается через `np.load(..., mmap_mode='r')` (без копирования в RAM).
-* Если каталога/обязательных файлов нет, возвращается безопасное состояние `is_loaded=False`
-  (API продолжает работать: /readyz сообщает о проблеме, поиск отвечает деградированно).
-* Обязательные файлы: manifest.json, families.parquet, offers.parquet. Остальные необязательны:
-  отсутствие фиксируется в `missing_files`, ошибка чтения — в `load_errors`.
-* Артефакты строятся доверенным Контуром 2, поэтому pickle-файлы (symspell, trie, vocab) читаются без ограничений.
-
-`current` может быть симлинком/каталогом либо текстовым указателем (`current` или `CURRENT_VERSION`)
-с именем версии (`idx_YYYYMMDD_HHMM_sha7`). Путь переопределяется переменной `INDEX_ARTIFACTS_CURRENT`.
-"""
+"""Загрузка артефактов индекса (B.5) из `data/artifacts/current` или `CURRENT_VERSION`."""
 from __future__ import annotations
 
 import json
@@ -75,12 +64,12 @@ class IndexState:
     path: Optional[str] = None
     loaded_at: str = ""
     manifest: Mapping[str, Any] = field(default_factory=dict)
-    families: Any = None             # pandas.DataFrame
-    offers: Any = None               # pandas.DataFrame
-    entities: Any = None             # pandas.DataFrame
-    graph_edges: Any = None          # pandas.DataFrame
-    data_quality_issues: Any = None  # pandas.DataFrame
-    embeddings: Optional[np.ndarray] = None  # np.memmap (n_families, dim), float32, L2-нормированная
+    families: Any = None
+    offers: Any = None
+    entities: Any = None
+    graph_edges: Any = None
+    data_quality_issues: Any = None
+    embeddings: Optional[np.ndarray] = None
     bm25f: Any = None
     bm25f_vocab: Any = None
     char3gram: Any = None
@@ -90,12 +79,15 @@ class IndexState:
     popular_by_root: Mapping[str, Any] = field(default_factory=dict)
     qc_report: Mapping[str, Any] = field(default_factory=dict)
     family_pos: Mapping[str, int] = field(default_factory=dict)
-    offers_by_family: Mapping[str, Any] = field(default_factory=dict)   # family_id -> np.ndarray позиций в offers
+    offers_by_family: Mapping[str, Any] = field(default_factory=dict)
     entity_pos: Mapping[str, int] = field(default_factory=dict)
+    family_dicts: Tuple[Dict[str, Any], ...] = ()
+    offer_dicts_by_family: Mapping[str, List[Dict[str, Any]]] = field(default_factory=dict)
+    entity_dicts: Tuple[Dict[str, Any], ...] = ()
+    edges_by_src: Mapping[str, List[Dict[str, Any]]] = field(default_factory=dict)
     missing_files: Tuple[str, ...] = ()
     load_errors: Tuple[str, ...] = ()
 
-    # ------------------------------------------------------------------ свойства
     @property
     def has_dense(self) -> bool:
         return self.embeddings is not None
@@ -112,24 +104,34 @@ class IndexState:
     def embedding_dim(self) -> Optional[int]:
         return None if self.embeddings is None else int(self.embeddings.shape[1])
 
-    # ------------------------------------------------------------------ доступ к данным
     def family_index(self, family_id: str) -> Optional[int]:
         return self.family_pos.get(family_id)
 
     def family_id_at(self, idx: int) -> str:
+        if self.family_dicts:
+            return str(self.family_dicts[idx]["family_id"])
         return str(self.families["family_id"].iat[idx])
 
     def family_row(self, family_id: str) -> Optional[Dict[str, Any]]:
         idx = self.family_pos.get(family_id)
-        if idx is None or self.families is None:
+        if idx is None:
+            return None
+        if self.family_dicts:
+            return self.family_dicts[idx]
+        if self.families is None:
             return None
         return self.families.iloc[idx].to_dict()
 
     def offer_rows(self, family_id: str) -> List[Dict[str, Any]]:
+        if self.offer_dicts_by_family:
+            return self.offer_dicts_by_family.get(family_id, [])
         positions = self.offers_by_family.get(family_id)
         if positions is None or self.offers is None:
             return []
         return self.offers.iloc[positions].to_dict("records")
+
+    def edges_for(self, src_family_id: str) -> List[Dict[str, Any]]:
+        return self.edges_by_src.get(src_family_id, [])
 
     def embedding_row(self, family_id: str) -> Optional[np.ndarray]:
         idx = self.family_pos.get(family_id)
@@ -139,12 +141,15 @@ class IndexState:
 
     def entity_row(self, entity_id: str) -> Optional[Dict[str, Any]]:
         idx = self.entity_pos.get(entity_id)
-        if idx is None or self.entities is None:
+        if idx is None:
+            return None
+        if self.entity_dicts:
+            return self.entity_dicts[idx]
+        if self.entities is None:
             return None
         return self.entities.iloc[idx].to_dict()
 
     def describe(self) -> Dict[str, Any]:
-        """Краткое описание для /readyz и /v1/admin/ops."""
         return {
             "is_loaded": self.is_loaded,
             "index_version": self.index_version,
@@ -164,7 +169,6 @@ class IndexState:
         return cls(is_loaded=False, path=path, loaded_at=utc_now_iso(), missing_files=tuple(missing), load_errors=tuple(errors))
 
 
-# --------------------------------------------------------------------------- загрузка
 def _read_json(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as fh:
         data = json.load(fh)
@@ -172,22 +176,30 @@ def _read_json(path: Path) -> Dict[str, Any]:
 
 
 def _load_sparse_or_bundle(path: Path) -> Any:
-    """`.npz` со scipy-матрицей (save_npz) или обычный npz-архив (словари термов и пр.)."""
     try:
         import scipy.sparse as sp
 
-        return sp.load_npz(path)
-    except Exception:  # noqa: BLE001 - не sparse-формат, пробуем как общий npz
+        mat = sp.load_npz(path)
+        # CSC даёт O(nnz_cols) при срезе столбцов `mat[:, cols]` (в ~100x быстрее CSR)
+        return mat.tocsc() if hasattr(mat, "tocsc") else mat
+    except Exception:  # noqa: BLE001
         return np.load(path, allow_pickle=True)
 
 
 def _load_pickle(path: Path) -> Any:
     with path.open("rb") as fh:
-        return pickle.load(fh)  # noqa: S301 - артефакты построены доверенным пайплайном
+        return pickle.load(fh)  # noqa: S301
+
+
+def _df_to_fast_dicts(df: Any) -> Tuple[Dict[str, Any], ...]:
+    if df is None or len(df) == 0:
+        return ()
+    cols = list(df.columns)
+    col_lists = [df[c].tolist() for c in cols]
+    return tuple(dict(zip(cols, row)) for row in zip(*col_lists))
 
 
 def load_index_state(base: Optional[Union[str, Path]] = None) -> IndexState:
-    """Загружает все артефакты. Никогда не бросает исключений: при проблемах возвращает is_loaded=False."""
     directory = resolve_artifact_dir(base)
     if directory is None:
         shown = str(base or os.getenv("INDEX_ARTIFACTS_CURRENT", DEFAULT_CURRENT))
@@ -236,7 +248,6 @@ def load_index_state(base: Optional[Union[str, Path]] = None) -> IndexState:
     qc_report = attempt("qc_report.json", _read_json) or {}
     embeddings = attempt("embeddings.npy", lambda p: np.load(p, mmap_mode="r"))
 
-    # --- проверка обязательных частей
     if not manifest or families is None or offers is None:
         errors.append("required artifacts are missing or unreadable (manifest/families/offers)")
         return IndexState.unloaded(*errors, missing=tuple(missing), path=str(directory))
@@ -244,7 +255,6 @@ def load_index_state(base: Optional[Union[str, Path]] = None) -> IndexState:
         errors.append("families/offers have no 'family_id' column")
         return IndexState.unloaded(*errors, missing=tuple(missing), path=str(directory))
 
-    # --- согласованность эмбеддингов: при несовпадении dense отключается, остальное работает
     if embeddings is not None:
         if embeddings.ndim != 2 or embeddings.shape[0] != len(families):
             errors.append(
@@ -255,11 +265,20 @@ def load_index_state(base: Optional[Union[str, Path]] = None) -> IndexState:
             errors.append(f"embeddings.npy dtype is {embeddings.dtype}, expected float32; dense disabled")
             embeddings = None
 
-    family_pos = {str(fid): i for i, fid in enumerate(families["family_id"].tolist())}
+    family_dicts = _df_to_fast_dicts(families)
+    family_pos = {str(d["family_id"]): i for i, d in enumerate(family_dicts)}
+
     offers_by_family = {str(k): v for k, v in offers.groupby("family_id", sort=False).indices.items()}
-    entity_pos: Dict[str, int] = {}
-    if entities is not None and "entity_id" in entities.columns:
-        entity_pos = {str(eid): i for i, eid in enumerate(entities["entity_id"].tolist())}
+    offer_dicts_by_family: Dict[str, List[Dict[str, Any]]] = {}
+    for od in _df_to_fast_dicts(offers):
+        offer_dicts_by_family.setdefault(str(od["family_id"]), []).append(od)
+
+    entity_dicts = _df_to_fast_dicts(entities)
+    entity_pos = {str(d["entity_id"]): i for i, d in enumerate(entity_dicts)} if entity_dicts else {}
+
+    edges_by_src: Dict[str, List[Dict[str, Any]]] = {}
+    for ed in _df_to_fast_dicts(graph_edges):
+        edges_by_src.setdefault(str(ed["src_family_id"]), []).append(ed)
 
     index_version = str(manifest.get("index_version") or directory.name)
     log.info(
@@ -289,15 +308,16 @@ def load_index_state(base: Optional[Union[str, Path]] = None) -> IndexState:
         family_pos=family_pos,
         offers_by_family=offers_by_family,
         entity_pos=entity_pos,
+        family_dicts=family_dicts,
+        offer_dicts_by_family=offer_dicts_by_family,
+        entity_dicts=entity_dicts,
+        edges_by_src=edges_by_src,
         missing_files=tuple(missing),
         load_errors=tuple(errors),
     )
 
 
-# --------------------------------------------------------------------------- держатель состояния
 class IndexStateHolder:
-    """Потокобезопасный держатель текущего IndexState с атомарной подменой при перезагрузке."""
-
     def __init__(self, base: Optional[Union[str, Path]] = None) -> None:
         self._base = base
         self._lock = threading.RLock()
@@ -328,7 +348,6 @@ class IndexStateHolder:
         self._signature = self._compute_signature()
 
     def reload(self, *, keep_previous_on_failure: bool = True) -> IndexState:
-        """Перечитывает артефакты и атомарно подменяет состояние."""
         new_state = load_index_state(self._base)
         with self._lock:
             old = self._state
@@ -339,7 +358,6 @@ class IndexStateHolder:
             return new_state
 
     def reload_if_changed(self) -> bool:
-        """Перезагружает индекс, если сменилась сборка (`current` указывает на другой каталог/manifest)."""
         signature = self._compute_signature()
         if signature is None or signature == self._signature:
             return False

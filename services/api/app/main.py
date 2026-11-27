@@ -97,6 +97,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await gw.startup()
     get_qu_cache().warm_from_db(limit=512)
 
+    from services.api.suggest import build_suggest
+    from services.api.nlp import get_lexicon, get_nlp_config, get_symspell_dict
+    from services.api.retrieval.filters import _build_signals_map
+    from services.api.growth.price_benchmark import _get_cache as _warm_price_cache
+
+    _cfg = get_nlp_config()
+    _lex = get_lexicon(_cfg, idx, ov.snapshot())
+    get_symspell_dict(_cfg, _lex, idx, ov.snapshot())
+    _build_signals_map(idx)
+    _warm_price_cache(idx)
+    build_suggest("a", index_state=idx, overlay=ov.snapshot())
+    if os.getenv("PRELOAD_DENSE", "1") == "1" and idx.has_dense:
+        from services.api.retrieval.lanes.l4_dense import encode_query
+
+        encode_query("прогрев", str(idx.manifest.get("embedding_model") or "BAAI/bge-m3"))
+
     app.state.db_path = db_path
     app.state.index_state = idx
     app.state.overlay = ov
@@ -105,7 +121,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.probe_fn = lambda q, patch=None: asyncio.run_coroutine_threadsafe(
         run_probe(q, patch, req_options={"llm_enabled": False, "disable_dense": True}),
         loop,
-    ).result(timeout=10.0)
+    ).result(timeout=30.0)
     app.state.index_version = idx.index_version if idx.is_loaded else None
     app.state.config_version = ov.snapshot().config_version
     log.info(
@@ -234,6 +250,15 @@ def readyz(request: Request) -> Any:
     if not deg.probe_db():
         return error_response(request, 503, "db_unavailable", "SQLite недоступна")
     idx = get_index_state()
+    from services.api.nlp import get_lexicon, get_nlp_config, get_symspell_dict
+    from services.api.retrieval.filters import _build_signals_map
+    from services.api.growth.price_benchmark import _get_cache as _warm_price_cache
+    
+    _cfg = get_nlp_config()
+    _lex = get_lexicon(_cfg, idx, ov.snapshot())
+    get_symspell_dict(_cfg, _lex, idx, ov.snapshot())
+    _build_signals_map(idx)
+    _warm_price_cache(idx)
     ov = get_overlay_store()
     return ReadyResponse(
         index_version=idx.index_version if idx.is_loaded else None,

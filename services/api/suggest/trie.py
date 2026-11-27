@@ -1,8 +1,9 @@
 """Быстрый префиксный поиск поверх `typeahead_trie.pkl` (формат build.py)."""
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, List, Mapping, Optional, Tuple
 
 from services.api.app.schemas import SuggestCompletion, SuggestProductHit
 from services.api.core.index_state import IndexState
@@ -13,6 +14,31 @@ from services.api.nlp.config import basic_norm
 class TrieLookupResult:
     completions: List[SuggestCompletion]
     products: List[SuggestProductHit]
+
+
+_fast_lock = threading.Lock()
+_fast_ver: Optional[str] = None
+_fast_pool: List[Tuple[str, str, Mapping[str, Any]]] = []
+
+
+def _get_fast_pool(index_state: IndexState, families: List[Mapping[str, Any]]) -> List[Tuple[str, str, Mapping[str, Any]]]:
+    global _fast_ver, _fast_pool
+    with _fast_lock:
+        if _fast_ver == index_state.index_version and _fast_pool:
+            return _fast_pool
+    top = sorted(
+        families,
+        key=lambda f: (bool(f.get("available")), float(f.get("pop_prior") or 0.0)),
+        reverse=True,
+    )[:2500]
+    built = [
+        (str(f.get("canonical_name") or "").lower(), str(f.get("vendor") or "").lower(), f)
+        for f in top
+    ]
+    with _fast_lock:
+        _fast_ver = index_state.index_version
+        _fast_pool = built
+    return built
 
 
 def _to_product_hit(f: Mapping[str, Any]) -> SuggestProductHit:
@@ -47,12 +73,7 @@ def lookup_trie(
     prefix_map: Mapping[str, List[int]] = trie.get("prefix_map") or {}
 
     if not prefix_norm:
-        # Пустой фокус: популярные доступные товары и бренды
-        pop_fams = sorted(
-            families,
-            key=lambda f: (bool(f.get("available")), float(f.get("pop_prior") or 0.0)),
-            reverse=True,
-        )[:max_products]
+        fast_pool = _get_fast_pool(index_state, families)
         top_comps = [
             SuggestCompletion(
                 text=str(c["text"]),
@@ -62,7 +83,7 @@ def lookup_trie(
             for c in completions_data[:max_completions]
             if c.get("kind") in ("brand", "product", "alias", "category", "seed_query", "layout_fix")
         ]
-        return TrieLookupResult(completions=top_comps, products=[_to_product_hit(f) for f in pop_fams])
+        return TrieLookupResult(completions=top_comps, products=[_to_product_hit(f) for _, _, f in fast_pool[:max_products]])
 
     key = prefix_norm[:8]
     cand_indices = list(prefix_map.get(key, []))
@@ -106,17 +127,14 @@ def lookup_trie(
                     seen_fids.add(fid)
                     prod_hits.append(_to_product_hit(fam))
 
-    # Если из completions не набралось 4 товара — быстрый скан по family-именам
     if len(prod_hits) < max_products and families:
-        for fam in families:
+        for cname_low, vendor_low, fam in _get_fast_pool(index_state, families):
             if len(prod_hits) >= max_products:
                 break
             fid = str(fam.get("family_id") or "")
             if fid in seen_fids:
                 continue
-            cname = basic_norm(str(fam.get("canonical_name") or ""))
-            vendor = basic_norm(str(fam.get("vendor") or ""))
-            if prefix_norm in cname or prefix_norm in vendor:
+            if prefix_norm in cname_low or prefix_norm in vendor_low:
                 seen_fids.add(fid)
                 prod_hits.append(_to_product_hit(fam))
 

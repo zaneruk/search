@@ -16,6 +16,7 @@ class SearchOptions(BaseModel):
     disable_dense: bool = False
     limit: int = Field(default=20, ge=4, le=50)
     include_trace: bool = True
+    disable_l5: bool = False
 
 
 class SearchRequest(BaseModel):

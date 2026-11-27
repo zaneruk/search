@@ -66,40 +66,30 @@ def _get_cache(index_state: IndexState) -> _BenchmarkCache:
             return _cache
 
     groups: Dict[Tuple[str, str, str], List[_PeerUnit]] = defaultdict(list)
-    f_df = index_state.families
-    o_df = index_state.offers
-    if f_df is not None and o_df is not None and len(f_df) > 0 and len(o_df) > 0:
-        fam_ptype: Dict[str, str] = {}
-        rep_map: Dict[str, str] = {}
-        for fid, pt, rep_id in zip(
-            f_df["family_id"].astype(str).tolist(),
-            f_df["product_type"].fillna("").astype(str).tolist(),
-            f_df["representative_offer_id"].fillna("").astype(str).tolist(),
-        ):
-            if pt and rep_id:
-                fam_ptype[rep_id] = pt
-                rep_map[rep_id] = fid
-
-        cols = [c for c in ("offer_id", "price_minor", "term_months", "qty_users", "segment", "license_type") if c in o_df.columns]
-        if len(cols) >= 4:
-            sub = o_df[o_df["offer_id"].astype(str).isin(rep_map.keys())][cols]
-            cpos = {c: i for i, c in enumerate(cols)}
-            for row in sub.itertuples(index=False, name=None):
-                oid = str(row[cpos["offer_id"]])
-                price = _safe_pos_int(row[cpos["price_minor"]]) if "price_minor" in cpos else None
-                term = _safe_pos_int(row[cpos["term_months"]]) if "term_months" in cpos else None
-                qty = _safe_pos_int(row[cpos["qty_users"]]) if "qty_users" in cpos else None
-                if price is None or term is None or qty is None:
-                    continue
-                seg_raw = row[cpos["segment"]] if "segment" in cpos else None
-                lic_raw = row[cpos["license_type"]] if "license_type" in cpos else None
-                seg = basic_norm(str(seg_raw)) if seg_raw is not None and not pd.isna(seg_raw) else "smb"
-                lic = basic_norm(str(lic_raw)) if lic_raw is not None and not pd.isna(lic_raw) else ""
-                if not lic or lic in ("nan", "none", "<na>"):
-                    continue
-                unit = max(1, int(round(price * (12.0 / term) / qty)))
-                key = (fam_ptype[oid], seg or "smb", lic)
-                groups[key].append(_PeerUnit(family_id=rep_map[oid], unit_minor=unit))
+    if index_state.is_loaded and index_state.family_dicts:
+        for fam in index_state.family_dicts:
+            fid = str(fam.get("family_id") or "")
+            pt = str(fam.get("product_type") or "").strip()
+            rep_oid = str(fam.get("representative_offer_id") or "").strip()
+            if not fid or not pt:
+                continue
+            offers = index_state.offer_rows(fid)
+            if not offers:
+                continue
+            rep = next((o for o in offers if str(o.get("offer_id") or "") == rep_oid), offers[0])
+            price = _safe_pos_int(rep.get("price_minor"))
+            term = _safe_pos_int(rep.get("term_months"))
+            qty = _safe_pos_int(rep.get("qty_users"))
+            if price is None or term is None or qty is None:
+                continue
+            seg_raw = rep.get("segment")
+            lic_raw = rep.get("license_type")
+            seg = basic_norm(str(seg_raw)) if seg_raw is not None and not pd.isna(seg_raw) else "smb"
+            lic = basic_norm(str(lic_raw)) if lic_raw is not None and not pd.isna(lic_raw) else ""
+            if not lic or lic in ("nan", "none", "<na>"):
+                continue
+            unit = max(1, int(round(price * (12.0 / term) / qty)))
+            groups[(pt, seg or "smb", lic)].append(_PeerUnit(family_id=fid, unit_minor=unit))
 
     built = _BenchmarkCache(index_version=index_state.index_version, groups=dict(groups))
     with _cache_lock:
