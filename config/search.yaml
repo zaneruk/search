@@ -65,7 +65,7 @@ qu:
   escalate_on_zero_results: true
   escalate_min_tokens_for_nl: 5
   max_candidate_entities: 15
-  max_tokens_out: 150
+  max_tokens_out: 350
   retry_on_invalid_json: 1
   cache:
     ttl_seconds: 86400

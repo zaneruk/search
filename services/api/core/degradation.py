@@ -63,21 +63,42 @@ class DegradationManager:
         self._lock = threading.RLock()
         self._chaos_llm = False
         self._chaos_dense = False
+        self._chaos_overlay = False
         self._db_down_until = 0.0
         self._spent = 0
         self._spent_day = ""
         self._spent_checked_at = -1e18
 
     # ------------------------------------------------------------------ chaos
+    # В __init__ добавить: self._chaos_overlay = False
     def set_chaos(
-        self, force_disable_llm: Optional[bool] = None, force_disable_dense: Optional[bool] = None
+        self,
+        force_disable_llm: Optional[bool] = None,
+        force_disable_dense: Optional[bool] = None,
+        force_disable_overlay: Optional[bool] = None,
     ) -> DegradationLevel:
-        """Включает/выключает chaos-флаги (None = не менять) и возвращает новый уровень."""
         with self._lock:
             if force_disable_llm is not None:
                 self._chaos_llm = bool(force_disable_llm)
             if force_disable_dense is not None:
                 self._chaos_dense = bool(force_disable_dense)
+            if force_disable_overlay is not None:
+                self._chaos_overlay = bool(force_disable_overlay)
+        return self.level()
+
+    @property
+    def force_disable_llm(self) -> bool:
+        return self._chaos_llm
+
+    @property
+    def force_disable_dense(self) -> bool:
+        return self._chaos_dense
+
+    @property
+    def force_disable_overlay(self) -> bool:
+        return self._chaos_overlay
+
+    def current_level(self) -> DegradationLevel:
         return self.level()
 
     def chaos_flags(self) -> Dict[str, bool]:
@@ -85,7 +106,7 @@ class DegradationManager:
             return {"force_disable_llm": self._chaos_llm, "force_disable_dense": self._chaos_dense}
 
     def clear_chaos(self) -> DegradationLevel:
-        return self.set_chaos(False, False)
+        return self.set_chaos(False, False,False)
 
     # ------------------------------------------------------------------ состояние БД
     def mark_db_failure(self) -> None:
@@ -155,6 +176,7 @@ class DegradationManager:
 
     # ------------------------------------------------------------------ вычисление уровня
     def _evaluate(self) -> Tuple[DegradationLevel, List[str]]:
+        if self.db_down or self._chaos_overlay: return DegradationLevel.L3, ["db_unavailable" if self.db_down else "chaos:force_disable_overlay"]
         if self.db_down:
             return DegradationLevel.L3, ["db_unavailable"]
         with self._lock:

@@ -202,7 +202,10 @@ class OverlayStore:
         self._snapshot: OverlaySnapshot = OverlaySnapshot.empty(self._defaults)
         self._last_check = 0.0
         self.loaded_ok = False
-
+        #для admin_deps
+    def reload(self) -> bool:
+        """Алиас для совместимости с admin_deps.notify_overlay_reload()."""
+        return self.load()
     # ------------------------------------------------------------------ чтение
     def snapshot(self) -> OverlaySnapshot:
         """Текущий снимок (чтение ссылки атомарно, блокировка не нужна)."""
