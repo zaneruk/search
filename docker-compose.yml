@@ -12,6 +12,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./config:/app/config
+      - ./data/hf_cache:/root/.cache/huggingface   # <-- ДОБАВЛЕНО: кэш bge-m3 (2.2 ГБ)
     expose:
       - "8000"
     healthcheck:
@@ -23,7 +24,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 180s                           # <-- ИЗМЕНЕНО: 30s -> 180s на скачивание модели при 1-м старте
     restart: unless-stopped
 
   worker:
