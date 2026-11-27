@@ -1,0 +1,76 @@
+{"id": "synb_0001", "query": "антивирь для бухгалтерии", "query_class": "slang", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0002", "query": "резервка для сервера", "query_class": "slang", "hint_product_type": "ИБП и защита питания", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0003", "query": "виртуалка под 1с", "query_class": "slang", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0004", "query": "схд для видеоархива", "query_class": "slang", "hint_product_type": "Прочее оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0005", "query": "коммутатор гигабитный", "query_class": "slang", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0006", "query": "принтер лазерный для офиса", "query_class": "slang", "hint_product_type": "Принтеры, МФУ, сканеры и расходники", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0007", "query": "монитор 27 дюймов для дизайна", "query_class": "slang", "hint_product_type": "Мониторы и дисплеи", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0008", "query": "ссл для шифрования", "query_class": "slang", "hint_product_type": "Сертификаты и техподдержка", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0009", "query": "вебкамера для вкс", "query_class": "slang", "hint_product_type": "Видеонаблюдение и ВКС-оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0010", "query": "ссл для 1с", "query_class": "slang", "hint_product_type": "Сертификаты и техподдержка", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0011", "query": "планшет графический", "query_class": "slang", "hint_product_type": "Графика, дизайн и мультимедиа", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0012", "query": "ссл для сайта", "query_class": "slang", "hint_product_type": "Сертификаты и техподдержка", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0013", "query": "ссл для почты", "query_class": "slang", "hint_product_type": "Сертификаты и техподдержка", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0014", "query": "ссл для вэб-сервера", "query_class": "slang", "hint_product_type": "Сертификаты и техподдержка", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0015", "query": "ссл для vpn", "query_class": "slang", "hint_product_type": "Сертификаты и техподдержка", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0016", "query": "купить лицензию СКЗИ", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0017", "query": "лицензии СКЗИ для ФСТЭК", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0018", "query": "SIEM система для мониторинга", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0019", "query": "EDR решение для защиты", "query_class": "abbreviation", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0020", "query": "DLP система контроля данных", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0021", "query": "ИБП для серверной", "query_class": "abbreviation", "hint_product_type": "ИБП и защита питания", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0022", "query": "СХД для виртуализации", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0023", "query": "маршрутизатор Cisco", "query_class": "abbreviation", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0024", "query": "коммутаторы PoE", "query_class": "abbreviation", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0025", "query": "сервер Dell PowerEdge", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0026", "query": "ВКС оборудование для зала", "query_class": "abbreviation", "hint_product_type": "Видеонаблюдение и ВКС-оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0027", "query": "лицензии 1С Бухгалтерия", "query_class": "abbreviation", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0028", "query": "лицензии 1С УТ", "query_class": "abbreviation", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0029", "query": "лицензии 1С ERP", "query_class": "abbreviation", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0030", "query": "СКЗИ КриптоПро", "query_class": "abbreviation", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0031", "query": "как защитить данные по 152 фз для бухгалтерии", "query_class": "nl_task", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0032", "query": "система для контроля доступа сотрудников к интернету", "query_class": "nl_task", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0033", "query": "оборудование для видеоконференцсвязи в переговорку", "query_class": "nl_task", "hint_product_type": "Видеонаблюдение и ВКС-оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0034", "query": "антивирус с функцией обнаружения угроз edr", "query_class": "nl_task", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0035", "query": "апс для серверной стойки чтобы не отключалось", "query_class": "nl_task", "hint_product_type": "ИБП и защита питания", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0036", "query": "сканер документов для архива с высокой скоростью", "query_class": "nl_task", "hint_product_type": "Принтеры, МФУ, сканеры и расходники", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0037", "query": "монитор с защитой зрения для программистов", "query_class": "nl_task", "hint_product_type": "Мониторы и дисплеи", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0038", "query": "программа для проектирования зданий и помещений", "query_class": "nl_task", "hint_product_type": "САПР, CAD и ГИС", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0039", "query": "резервное копирование файлов на внешний диск", "query_class": "nl_task", "hint_product_type": "Накопители, память и комплектующие", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0040", "query": "средство шифрования дисков для ноутбуков", "query_class": "nl_task", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0041", "query": "коммутатор с управлением для офиса на 24 порта", "query_class": "nl_task", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0042", "query": "лицензия на бухгалтерскую программу для малого бизнеса", "query_class": "nl_task", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0043", "query": "клавиатура и мышь для кассового узла", "query_class": "nl_task", "hint_product_type": "Периферия и аксессуары", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0044", "query": "программа для тестирования железа и диагностики", "query_class": "nl_task", "hint_product_type": "Инструменты разработки (IDE и DevTools)", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0045", "query": "сервер для хранения фото и видео материалов", "query_class": "nl_task", "hint_product_type": "Прочее оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0046", "query": "как настроить резервное копирование баз данных 1с", "query_class": "nl_task", "hint_product_type": "ИБП и защита питания", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0047", "query": "программа для шифрования дисков по требованиям фстэк", "query_class": "nl_task", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0048", "query": "как защитить корпоративную сеть от внешних угроз", "query_class": "nl_task", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0049", "query": "система управления документами для соответствия 152 фз", "query_class": "nl_task", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0050", "query": "выбрать сервер для виртуализации рабочих станций", "query_class": "nl_task", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0051", "query": "как организовать безопасный доступ к удаленным ресурсам", "query_class": "nl_task", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0052", "query": "программа для аудита лицензий офисного пакета", "query_class": "nl_task", "hint_product_type": "Системные утилиты и работа с дисками", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0053", "query": "настройка мультимедийной презентации в актовом зале", "query_class": "nl_task", "hint_product_type": "Графика, дизайн и мультимедиа", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0054", "query": "как защитить рабочие станции от несанкционированного ПО", "query_class": "nl_task", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0055", "query": "оборудование для проектирования зданий с поддержкой бим", "query_class": "nl_task", "hint_product_type": "САПР, CAD и ГИС", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0056", "query": "сервер 2u", "query_class": "head_noun_hardware", "hint_product_type": "Прочее оборудование", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0057", "query": "коммутатор 48 портов", "query_class": "head_noun_hardware", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0058", "query": "маршрутизатор офисный", "query_class": "head_noun_hardware", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0059", "query": "ИБП онлайн", "query_class": "head_noun_hardware", "hint_product_type": "ИБП и защита питания", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0060", "query": "монитор 27 дюймов 4k", "query_class": "head_noun_hardware", "hint_product_type": "Мониторы и дисплеи", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0061", "query": "принтер лазерный черно-белый", "query_class": "head_noun_hardware", "hint_product_type": "Принтеры, МФУ, сканеры и расходники", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0062", "query": "сканер штрих-кодов", "query_class": "head_noun_hardware", "hint_product_type": "Периферия и аксессуары", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0063", "query": "мфут цветной сетевой", "query_class": "head_noun_hardware", "hint_product_type": "Принтеры, МФУ, сканеры и расходники", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0064", "query": "камера видеонаблюдения уличная", "query_class": "head_noun_hardware", "hint_product_type": "Видеонаблюдение и ВКС-оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0065", "query": "коммутатор управляемый", "query_class": "head_noun_hardware", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0066", "query": "cisco", "query_class": "ambiguous", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0067", "query": "microsoft 365", "query_class": "ambiguous", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0068", "query": "bitrix24", "query_class": "ambiguous", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0069", "query": "kaspersky", "query_class": "ambiguous", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0070", "query": "hp", "query_class": "ambiguous", "hint_product_type": "Принтеры, МФУ, сканеры и расходники", "split": "holdout", "data_tier": "derived"}
+{"id": "synb_0071", "query": "dell", "query_class": "ambiguous", "hint_product_type": "Серверное оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0072", "query": "аналог vmware esxi для серверов", "query_class": "analog", "hint_product_type": "Прочее оборудование", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0073", "query": "чем заменить Cisco cisco ios", "query_class": "analog", "hint_product_type": "Сетевое оборудование и Wi-Fi", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0074", "query": "аналог windows server 2019", "query_class": "analog", "hint_product_type": "Бухгалтерия, кадры, CRM и ERP", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0075", "query": "замена антивирусу kaspersky endpoint security", "query_class": "analog", "hint_product_type": "Антивирусы и защита конечных точек (EPP/EDR)", "split": "dev", "data_tier": "derived"}
+{"id": "synb_0076", "query": "аналог maxtor для архивации", "query_class": "analog", "hint_product_type": "Накопители, память и комплектующие", "split": "holdout", "data_tier": "derived"}

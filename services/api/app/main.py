@@ -1,59 +1,53 @@
-"""Временная заглушка API (Волна 0).
+"""Точка входа FastAPI (CONTRACTS.md B.3, B.8)."""
+from __future__ import annotations
 
-Что делает:
-  * при старте накатывает contracts/sql/001_init.sql в SQLITE_PATH (скрипт идемпотентен:
-    все CREATE ... IF NOT EXISTS);
-  * отдаёт GET /healthz и GET /readyz по B.8;
-  * регистрирует публичные ручки (/v1/suggest, /v1/search, /v1/search/stream, /v1/events)
-    с моделями из app.schemas, чтобы /openapi.json уже содержал контракт для typegen.
-    Реализации нет: ручки отвечают 501 с телом ApiError;
-  * соблюдает B.3: ответ всегда несёт X-Trace-Id, X-Config-Version, X-Degradation-Level,
-    а любые ошибки 4xx/5xx имеют форму ApiError.
-
-Когда появятся routers/public.py и routers/internal.py, ручки-заглушки отсюда удаляются,
-а роутеры подключаются через app.include_router(...).
-"""
-
-import json
+import asyncio
 import logging
+import os
 import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, Optional
 
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.datastructures import MutableHeaders
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
-from ulid import ULID
 
-from services.api.app.schemas.admin import EventIn
-from services.api.app.schemas.common import ApiError, DegradationLevel, Segment
-from services.api.app.schemas.search import SearchRequest, SearchResponse, SuggestResponse
-
+from services.api.app.routers import internal, public
+from services.api.app.schemas.common import ApiError, DegradationLevel
+from services.api.core.cache import get_qu_cache
+from services.api.core.cost_meter import default_db_path, sync_price_snapshots
+from services.api.core.degradation import get_degradation_manager
+from services.api.core.events import new_trace_id
+from services.api.core.index_state import get_index_state
+from services.api.core.overlay import get_overlay_store
+from services.api.llm.gateway import get_gateway
+from services.api.pipeline import run_probe
 log = logging.getLogger("smart_search.api")
 
 CONTRACT_VERSION = "2.0.0-mvp"
-# services/api/app/main.py -> parents[3] == корень репозитория (и /app в контейнере)
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
-class StubSettings(BaseSettings):
-    """Минимальные настройки заглушки. Позже их заменит app/settings.py."""
+def _load_dotenv_defaults() -> None:
+    env_file = REPO_ROOT / ".env"
+    if not env_file.is_file():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if not s or s.startswith("#") or "=" not in s:
+            continue
+        k, v = s.split("=", 1)
+        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    sqlite_path: str = "data/db/smart_search.sqlite"
-    contracts_sql_path: str = str(REPO_ROOT / "contracts" / "sql" / "001_init.sql")
-    artifacts_dir: str = "data/artifacts"
-
-
-# --------------------------------------------------------------------------- модели
+_load_dotenv_defaults()
 
 
 class HealthResponse(BaseModel):
@@ -66,15 +60,7 @@ class ReadyResponse(BaseModel):
     degradation: DegradationLevel
 
 
-class EventAccepted(BaseModel):
-    event_id: str
-
-
-# --------------------------------------------------------------------------- БД и индекс
-
-
 def apply_migrations(db_path: Path, sql_path: Path) -> None:
-    """Накатывает единую SQL-схему (B.6) в SQLite; безопасно вызывать повторно."""
     if not sql_path.is_file():
         raise FileNotFoundError(f"SQL-схема не найдена: {sql_path}")
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -87,65 +73,71 @@ def apply_migrations(db_path: Path, sql_path: Path) -> None:
         conn.close()
 
 
-def read_config_version(db_path: Path) -> int:
-    """Текущая config_version = максимум из config_versions (0, пока таблица пуста)."""
-    conn = sqlite3.connect(str(db_path), timeout=3)
-    try:
-        row = conn.execute("SELECT COALESCE(MAX(config_version), 0) FROM config_versions").fetchone()
-        return int(row[0])
-    finally:
-        conn.close()
-
-
-def read_index_version(artifacts_dir: Path) -> Optional[str]:
-    """index_version из data/artifacts/current (симлинк на каталог или файл-указатель, B.5)."""
-    current = artifacts_dir / "current"
-    try:
-        if current.is_dir():
-            manifest = current / "manifest.json"
-            if manifest.is_file():
-                value = json.loads(manifest.read_text(encoding="utf-8")).get("index_version")
-                return str(value) if value else None
-        elif current.is_file():
-            pointer = current.read_text(encoding="utf-8").strip()
-            manifest = artifacts_dir / pointer / "manifest.json"
-            if manifest.is_file():
-                value = json.loads(manifest.read_text(encoding="utf-8")).get("index_version")
-                return str(value) if value else pointer
-            return pointer or None
-    except (OSError, ValueError):
-        log.warning("Не удалось прочитать manifest.json индекса", exc_info=True)
-    return None
-
-
-# --------------------------------------------------------------------------- lifespan
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logging.basicConfig(level=logging.INFO)
-    settings = StubSettings()
-    db_path = Path(settings.sqlite_path)
-    apply_migrations(db_path, Path(settings.contracts_sql_path))
-    log.info("SQLite готова: %s (схема %s)", db_path, settings.contracts_sql_path)
+    _load_dotenv_defaults()
 
-    app.state.settings = settings
+    # 1. Накат contracts/sql/001_init.sql
+    db_path = Path(default_db_path())
+    sql_path = Path(os.getenv("CONTRACTS_SQL_PATH", str(REPO_ROOT / "contracts" / "sql" / "001_init.sql")))
+    apply_migrations(db_path, sql_path)
+
+    # 2. Синхронизация тарифов LLM
+    await asyncio.to_thread(sync_price_snapshots)
+
+    # 3. Загрузка OverlayStore и индекса
+    idx = get_index_state()
+    ov = get_overlay_store()
+    ov.load()
+    deg = get_degradation_manager()
+
+    # 4. Старт LLMGateway (прогрев HTTP/TLS + price_book) и прогрев QU-кэша
+    gw = get_gateway()
+    await gw.startup()
+    get_qu_cache().warm_from_db(limit=512)
+
+    from services.api.suggest import build_suggest
+    from services.api.nlp import get_lexicon, get_nlp_config, get_symspell_dict
+    from services.api.retrieval.filters import _build_signals_map
+    from services.api.growth.price_benchmark import _get_cache as _warm_price_cache
+
+    _cfg = get_nlp_config()
+    _lex = get_lexicon(_cfg, idx, ov.snapshot())
+    get_symspell_dict(_cfg, _lex, idx, ov.snapshot())
+    _build_signals_map(idx)
+    _warm_price_cache(idx)
+    build_suggest("a", index_state=idx, overlay=ov.snapshot())
+    if os.getenv("PRELOAD_DENSE", "1") == "1" and idx.has_dense:
+        from services.api.retrieval.lanes.l4_dense import encode_query
+
+        encode_query("прогрев", str(idx.manifest.get("embedding_model") or "BAAI/bge-m3"))
+
     app.state.db_path = db_path
-    app.state.artifacts_dir = Path(settings.artifacts_dir)
-    app.state.config_version = read_config_version(db_path)
-    app.state.index_version = read_index_version(app.state.artifacts_dir)
-    app.state.degradation = DegradationLevel.L0
-    yield
-
-
-# --------------------------------------------------------------------------- middleware
+    app.state.index_state = idx
+    app.state.overlay = ov
+    app.state.degradation = deg
+    loop = asyncio.get_running_loop()
+    app.state.probe_fn = lambda q, patch=None: asyncio.run_coroutine_threadsafe(
+        run_probe(q, patch, req_options={"llm_enabled": False, "disable_dense": True}),
+        loop,
+    ).result(timeout=30.0)
+    app.state.index_version = idx.index_version if idx.is_loaded else None
+    app.state.config_version = ov.snapshot().config_version
+    log.info(
+        "API готово: index=%s config_version=%d deg=%s",
+        app.state.index_version,
+        app.state.config_version,
+        deg.level().value,
+    )
+    try:
+        yield
+    finally:
+        await gw.aclose()
 
 
 class ContractHeadersMiddleware:
-    """B.3: X-Trace-Id, X-Config-Version, X-Degradation-Level в каждом ответе.
-
-    Чистый ASGI-middleware (не BaseHTTPMiddleware), чтобы не буферизовать SSE.
-    """
+    """B.3: X-Trace-Id, X-Config-Version, X-Degradation-Level в каждом ответе (совместимо с SSE)."""
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -155,23 +147,22 @@ class ContractHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
-        trace_id = f"tr_{ULID()}"
+        trace_id = new_trace_id()
         scope.setdefault("state", {})["trace_id"] = trace_id
 
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":
-                state = scope["app"].state
                 headers = MutableHeaders(scope=message)
-                headers["X-Trace-Id"] = trace_id
-                headers["X-Config-Version"] = str(getattr(state, "config_version", 0))
-                degradation = getattr(state, "degradation", DegradationLevel.L0)
-                headers["X-Degradation-Level"] = degradation.value
+                if "x-trace-id" not in headers:
+                    headers["X-Trace-Id"] = trace_id
+                if "x-config-version" not in headers:
+                    headers["X-Config-Version"] = str(get_overlay_store().snapshot().config_version)
+                if "x-degradation-level" not in headers:
+                    headers["X-Degradation-Level"] = get_degradation_manager().level().value
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
 
-
-# --------------------------------------------------------------------------- приложение
 
 app = FastAPI(
     title="smart-search API",
@@ -179,7 +170,25 @@ app = FastAPI(
     description="Умный поиск для store.softline.ru. Контракт: CONTRACTS.md (B.8).",
     lifespan=lifespan,
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Trace-Id", "X-Config-Version", "X-Degradation-Level"],
+)
 app.add_middleware(ContractHeadersMiddleware)
+app.include_router(public.router)
+app.include_router(internal.router)
+
+# Безопасное автоподключение админ-роутеров Контура 3 (после слияния с веткой напарника)
+for _mod_name in ("admin_analytics", "admin_agent", "admin_ops"):
+    try:
+        _mod = __import__(f"services.api.app.routers.{_mod_name}", fromlist=["router"])
+        app.include_router(_mod.router)
+    except ImportError:
+        pass
 
 
 def error_response(
@@ -201,6 +210,8 @@ def error_response(
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    if isinstance(exc.detail, dict) and "error_code" in exc.detail:
+        return JSONResponse(status_code=exc.status_code, content=exc.detail, headers=exc.headers)
     message = exc.detail if isinstance(exc.detail, str) else "HTTP error"
     return error_response(request, exc.status_code, f"http_{exc.status_code}", message, headers=exc.headers)
 
@@ -222,20 +233,6 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     return error_response(request, 500, "internal_error", "Внутренняя ошибка сервера")
 
 
-def not_implemented(request: Request, endpoint: str) -> JSONResponse:
-    return error_response(
-        request,
-        501,
-        "not_implemented",
-        f"{endpoint}: реализация появится после Волны 0",
-    )
-
-
-# --------------------------------------------------------------------------- health
-
-NOT_IMPLEMENTED_DOC = {501: {"model": ApiError, "description": "Заглушка Волны 0"}}
-
-
 @app.get("/healthz", response_model=HealthResponse, tags=["health"], summary="Liveness-проба")
 def healthz() -> HealthResponse:
     return HealthResponse()
@@ -249,75 +246,22 @@ def healthz() -> HealthResponse:
     summary="Готовность индекса и БД",
 )
 def readyz(request: Request) -> Any:
-    state = request.app.state
-    try:
-        config_version = read_config_version(state.db_path)
-    except sqlite3.Error as exc:
-        log.error("readyz: SQLite недоступна: %s", exc)
+    deg = get_degradation_manager()
+    if not deg.probe_db():
         return error_response(request, 503, "db_unavailable", "SQLite недоступна")
-
-    state.config_version = config_version
-    # До первой сборки индекса index_version = null (B.3: отсутствующее значение — null).
-    state.index_version = read_index_version(state.artifacts_dir)
+    idx = get_index_state()
+    from services.api.nlp import get_lexicon, get_nlp_config, get_symspell_dict
+    from services.api.retrieval.filters import _build_signals_map
+    from services.api.growth.price_benchmark import _get_cache as _warm_price_cache
+    
+    _cfg = get_nlp_config()
+    _lex = get_lexicon(_cfg, idx, ov.snapshot())
+    get_symspell_dict(_cfg, _lex, idx, ov.snapshot())
+    _build_signals_map(idx)
+    _warm_price_cache(idx)
+    ov = get_overlay_store()
     return ReadyResponse(
-        index_version=state.index_version,
-        config_version=config_version,
-        degradation=state.degradation,
+        index_version=idx.index_version if idx.is_loaded else None,
+        config_version=ov.snapshot().config_version,
+        degradation=deg.level(),
     )
-
-
-# --------------------------------------------------------------------------- public (заглушки)
-
-
-@app.get(
-    "/v1/suggest",
-    response_model=SuggestResponse,
-    responses=NOT_IMPLEMENTED_DOC,
-    tags=["public"],
-    summary="Typeahead",
-)
-def suggest(
-    request: Request,
-    q: str = Query(..., max_length=100),
-    segment: Segment = Segment.smb,
-) -> Any:
-    return not_implemented(request, "GET /v1/suggest")
-
-
-@app.post(
-    "/v1/search",
-    response_model=SearchResponse,
-    responses=NOT_IMPLEMENTED_DOC,
-    tags=["public"],
-    summary="Полный поиск (S0–S12)",
-)
-def search(request: Request, body: SearchRequest) -> Any:
-    return not_implemented(request, "POST /v1/search")
-
-
-@app.post(
-    "/v1/search/stream",
-    responses={
-        200: {
-            "description": "SSE: события span, final, error (B.9)",
-            "content": {"text/event-stream": {"schema": {"type": "string"}}},
-        },
-        **NOT_IMPLEMENTED_DOC,
-    },
-    tags=["public"],
-    summary="Поиск с потоком шагов trace по SSE",
-)
-def search_stream(request: Request, body: SearchRequest) -> Any:
-    return not_implemented(request, "POST /v1/search/stream")
-
-
-@app.post(
-    "/v1/events",
-    status_code=202,
-    response_model=EventAccepted,
-    responses=NOT_IMPLEMENTED_DOC,
-    tags=["public"],
-    summary="Логирование кликов, корзины, 👎, catalog_gap_lead",
-)
-def events(request: Request, body: EventIn) -> Any:
-    return not_implemented(request, "POST /v1/events")
