@@ -675,3 +675,110 @@ def get_gateway() -> LLMGateway:
 
             _gateway = LLMGateway(degradation=get_degradation_manager())
         return _gateway
+
+# --------------------------------------------------------------------------- sync-совместимость для worker / pipelines
+def call_llm_structured(
+    role: str,
+    purpose: str,
+    system_prompt: str,
+    user_payload: str,
+    schema_cls: Optional[Type[T]] = None,
+    temperature: float = 0.0,
+    max_tokens_override: Optional[int] = None,
+    timeout_override: Optional[float] = None,
+    trace_id: Optional[str] = None,
+    conn: Optional[Any] = None,
+) -> tuple[Optional[Dict[str, Any]], Dict[str, Any]]:
+    """Синхронный вызов LLM для воркера Контура 3 и пайплайнов Контура 2 поверх единых настроек/тарифов."""
+    del conn  # запись идёт через единый record_llm_call в SQLite
+    settings = LLMSettings.from_env()
+    try:
+        headers = settings.headers()
+    except LLMConfigError as exc:
+        return None, {"status": f"config_error: {exc}", "cost_micro_rub": 0}
+
+    role_enum = LLMRole(role.strip().upper()) if role.strip().upper() in LLMRole.__members__ else LLMRole.STRONG
+    try:
+        model_uri = settings.model_uri(role_enum)
+    except LLMConfigError:
+        model_uri = settings.model_uri(LLMRole.FALLBACK) if settings.has_model(LLMRole.FALLBACK) else ""
+    if not model_uri:
+        return None, {"status": "config_error: model not set", "cost_micro_rub": 0}
+
+    model_name = normalize_model_name(model_uri)
+    default_tok = {"FAST": 350, "AGENT": 2000, "STRONG": 900, "SYNTH": 900, "FALLBACK": 900}.get(role_enum.value, 900)
+    max_tok = int(max_tokens_override or default_tok)
+    timeout_s = float(timeout_override or (settings.timeout_ms if role_enum is LLMRole.FAST else settings.offline_timeout_ms) / 1000.0)
+
+    fallback_uri = settings.model_uri(LLMRole.FALLBACK) if settings.has_model(LLMRole.FALLBACK) else None
+    attempts = [(model_uri, 0), (fallback_uri or model_uri, 1)]
+    book = get_price_book()
+
+    last_err = ""
+    cost_micro = 0
+    with httpx.Client(timeout=timeout_s) as client:
+        for retry_n, (m_uri, _) in enumerate(attempts):
+            m_name = normalize_model_name(m_uri)
+            payload: Dict[str, Any] = {
+                "model": m_uri,
+                "temperature": temperature,
+                "max_tokens": max_tok,
+                "messages": [
+                    {"role": "system", "content": system_prompt + SYSTEM_JSON_RULE},
+                    {"role": "user", "content": user_payload},
+                ],
+                "stream": False,
+            }
+            eff = _reasoning_effort_for(role_enum, m_uri)
+            if eff is not None:
+                payload["reasoning_effort"] = eff
+
+            t0 = time.perf_counter()
+            t_in = t_cached = t_out = 0
+            status_str = "error"
+            try:
+                resp = client.post(f"{settings.base_url}/chat/completions", headers=headers, json=payload)
+                latency_ms = (time.perf_counter() - t0) * 1000.0
+                if resp.status_code >= 400:
+                    status_str = f"http_{resp.status_code}"
+                    last_err = f"{status_str}: {resp.text[:200]}"
+                    continue
+                data = resp.json()
+                usage = LLMGateway._extract_usage(data)
+                if usage is not None:
+                    t_in, t_cached, t_out = usage
+                raw_text = LLMGateway._extract_content(data)
+                parsed_obj = parse_json_payload(raw_text or "")
+                if not isinstance(parsed_obj, dict):
+                    raise ValueError("expected JSON object")
+                if schema_cls is not None:
+                    parsed_obj = schema_cls.model_validate(parsed_obj).model_dump(mode="json")
+                status_str = "ok"
+                return parsed_obj, {
+                    "status": "ok",
+                    "model": m_uri,
+                    "tokens_in": t_in,
+                    "tokens_cached": t_cached,
+                    "tokens_out": t_out,
+                    "latency_ms": round(latency_ms, 2),
+                    "cost_micro_rub": cost_micro,
+                }
+            except Exception as exc:  # noqa: BLE001
+                latency_ms = (time.perf_counter() - t0) * 1000.0
+                last_err = f"{type(exc).__name__}: {str(exc)[:200]}"
+                status_str = f"error:{type(exc).__name__}"
+            finally:
+                cost_micro = record_llm_call(
+                    purpose=purpose,
+                    provider=PROVIDER,
+                    model=m_name,
+                    tokens_in=t_in,
+                    tokens_cached=t_cached,
+                    tokens_out=t_out,
+                    latency_ms=(time.perf_counter() - t0) * 1000.0,
+                    status=status_str,
+                    trace_id=trace_id,
+                    retry_n=retry_n,
+                    price_book=book,
+                )
+    return None, {"status": "failed", "error": last_err, "cost_micro_rub": cost_micro}

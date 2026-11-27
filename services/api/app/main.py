@@ -28,7 +28,7 @@ from services.api.core.events import new_trace_id
 from services.api.core.index_state import get_index_state
 from services.api.core.overlay import get_overlay_store
 from services.api.llm.gateway import get_gateway
-
+from services.api.pipeline import run_probe
 log = logging.getLogger("smart_search.api")
 
 CONTRACT_VERSION = "2.0.0-mvp"
@@ -101,6 +101,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.index_state = idx
     app.state.overlay = ov
     app.state.degradation = deg
+    loop = asyncio.get_running_loop()
+    app.state.probe_fn = lambda q, patch=None: asyncio.run_coroutine_threadsafe(
+        run_probe(q, patch, req_options={"llm_enabled": False, "disable_dense": True}),
+        loop,
+    ).result(timeout=10.0)
     app.state.index_version = idx.index_version if idx.is_loaded else None
     app.state.config_version = ov.snapshot().config_version
     log.info(

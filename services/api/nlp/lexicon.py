@@ -46,7 +46,7 @@ _KIND_ALIASES = {
     "content": "content", "article": "content", "page": "content",
     "external_product": "external_product", "external": "external_product", "ext": "external_product",
 }
-_OVERLAY_VALUE_KEYS = ("to", "canonical", "canonical_name", "terms", "synonyms", "aliases", "targets", "value")
+_OVERLAY_VALUE_KEYS = ("to", "target", "canonical", "canonical_name", "terms", "synonyms", "aliases", "targets", "value")
 
 
 def norm_kind(kind: Any, entity_id: str = "") -> str:

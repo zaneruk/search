@@ -474,6 +474,7 @@ class OverlayStore:
             now = utc_now_iso()
             conn.execute("UPDATE overlay_items SET active = 0, config_version = ?, updated_at = ? WHERE active = 1", (new_version, now))
             for it in items:
+                raw_val = it.get("value_json") if "value_json" in it else json.dumps(it.get("value", {}), ensure_ascii=False, separators=(",", ":"))
                 conn.execute(
                     "INSERT INTO overlay_items(item_id, kind, key_norm, value_json, active, config_version, updated_at) "
                     "VALUES (?,?,?,?,1,?,?) ON CONFLICT(item_id) DO UPDATE SET kind=excluded.kind, key_norm=excluded.key_norm, "
