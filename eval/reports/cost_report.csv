@@ -1,6 +1,6 @@
 component,driver,unit,quantity_per_query,unit_price_rub,price_source,price_date,cost_per_query_rub,share_pct,basis
-C_llm (Online QU),LLMGateway role=FAST (qwen3.6-35b-a3b),call/query,0.344,0.143108,https://yandex.cloud/ru/docs/ai-studio/pricing,2026-11-26,0.049229,21.95,measured
-C_cpu (Retrieval + CPU encoder),vCPU seconds (BM25F + BGE-M3 query),cpu_sec/query,0.12,0.000241,VPS tariff,2026-11-26,2.9e-05,0.01,assumed
-C_fixed_loaded (VPS hosting),Q_month=15000 req/mo,1/Q_month,6.667e-05,2500.0,VPS tariff,2026-11-26,0.166667,74.32,assumed
-C_off (Offline enrich/eval amortized),H=3 mo amortization,1/(H*Q_month),2.222e-05,339.9358,https://yandex.cloud/ru/docs/ai-studio/pricing,2026-11-26,0.007554,3.37,measured
-C_agent (Diagnostic worker),cost_ledger purpose=agent_diagnose,1/Q_month,6.667e-05,11.7264,https://yandex.cloud/ru/docs/ai-studio/pricing,2026-11-26,0.000782,0.35,measured
+C_llm (Online QU),LLMGateway role=FAST (qwen3.6-35b-a3b),call/query,0.03,0.0,https://yandex.cloud/ru/docs/ai-studio/pricing,2026-11-26,0.0,0.0,measured
+C_cpu (Retrieval + CPU encoder),vCPU seconds (BM25F + BGE-M3 query),cpu_sec/query,0.12,0.000241,VPS tariff,2026-11-26,2.9e-05,0.02,assumed
+C_fixed_loaded (VPS hosting),Q_month=15000 req/mo,1/Q_month,6.667e-05,2500.0,VPS tariff,2026-11-26,0.166667,95.69,assumed
+C_off (Offline enrich/eval amortized),H=3 mo amortization,1/(H*Q_month),2.222e-05,300.0737,https://yandex.cloud/ru/docs/ai-studio/pricing,2026-11-26,0.006668,3.83,measured
+C_agent (Diagnostic worker),cost_ledger purpose=agent_diagnose,1/Q_month,6.667e-05,12.1249,https://yandex.cloud/ru/docs/ai-studio/pricing,2026-11-26,0.000808,0.46,measured
