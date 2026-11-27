@@ -221,20 +221,33 @@ def _run_gold10_check(
             target_fid = g.get("target_family_id", "")
             target_eid = g.get("target_entity_id", "")
             try:
+                # 1. Проверяем до патча (базовое состояние)
+                res_before = probe_fn(q, None)
+                parsed_before = _extract_hits_from_search_response(res_before)
+                if kind in ("category", "content"):
+                    ok_before = (target_eid in parsed_before["nav_ids"][:2]) or (target_fid in parsed_before["family_ids"][:4])
+                else:
+                    ok_before = target_fid in parsed_before["family_ids"][:4]
+
+                # 2. Проверяем с кандидатным патчем
                 res = probe_fn(q, patch)
                 parsed = _extract_hits_from_search_response(res)
                 if kind in ("category", "content"):
                     ok = (target_eid in parsed["nav_ids"][:2]) or (target_fid in parsed["family_ids"][:4])
                 else:
                     ok = target_fid in parsed["family_ids"][:4]
-                if not ok:
+
+                # Регрессия — это когда БЫЛО пройдено, а СТАЛО не пройдено
+                if ok_before and not ok:
                     all_ok = False
+                
                 details.append(
                     {
                         "query": q,
                         "target_kind": kind,
                         "target_family_id": target_fid,
                         "passed": ok,
+                        "regressed": (ok_before and not ok),
                         "top4_families": parsed["family_ids"][:4],
                         "mode": "live_probe",
                     }
