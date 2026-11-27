@@ -250,15 +250,6 @@ def readyz(request: Request) -> Any:
     if not deg.probe_db():
         return error_response(request, 503, "db_unavailable", "SQLite недоступна")
     idx = get_index_state()
-    from services.api.nlp import get_lexicon, get_nlp_config, get_symspell_dict
-    from services.api.retrieval.filters import _build_signals_map
-    from services.api.growth.price_benchmark import _get_cache as _warm_price_cache
-    
-    _cfg = get_nlp_config()
-    _lex = get_lexicon(_cfg, idx, ov.snapshot())
-    get_symspell_dict(_cfg, _lex, idx, ov.snapshot())
-    _build_signals_map(idx)
-    _warm_price_cache(idx)
     ov = get_overlay_store()
     return ReadyResponse(
         index_version=idx.index_version if idx.is_loaded else None,
