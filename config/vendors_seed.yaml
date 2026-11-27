@@ -1,0 +1,167 @@
+# Курированный seed ключевых вендоров, связей допродаж, аналогов и внешних продуктов (п. 2.3, B.7).
+# Внимание: сюда НЕ добавляются дословные строки GOLD10 для seed_glossary.yaml (правило R6).
+
+vendors:
+  Kaspersky:
+    domain: "https://www.kaspersky.ru"
+    evidence_url: "https://www.kaspersky.ru/small-to-medium-business-security"
+    snippet: "Решения Лаборатории Касперского для защиты рабочих станций, серверов и корпоративных сетей."
+    aliases: ["Касперский", "Лаборатория Касперского", "Kaspersky Lab", "Каспер", "KES", "KSOS"]
+    complements:
+      - src: "Endpoint Security"
+        dst: "Security Center"
+        snippet: "Единая консоль централизованного управления защитой рабочих мест и серверов."
+      - dst: "Кибер Бэкап"
+        snippet: "Комплексная защита бизнеса: антивирусная защита + регулярное резервное копирование."
+    upsell_to:
+      - src: "Small Office"
+        dst: "Endpoint Security"
+        snippet: "Переход от защиты малого офиса к централизованному корпоративному управлению (50+ АРМ)."
+
+  Astra Linux:
+    domain: "https://astralinux.ru"
+    evidence_url: "https://astralinux.ru/products/astra-linux-special-edition/"
+    snippet: "Отечественная защищённая ОС для рабочих станций и серверов с сертифицированными средствами защиты."
+    aliases: ["Астра Линукс", "Astra", "Астра", "ГК Астра", "Группа Астра", "ALSE"]
+    complements:
+      - dst: "Kaspersky Endpoint Security"
+        snippet: "Сертифицированная антивирусная защита рабочих станций и серверов под управлением Astra Linux."
+      - dst: "Р7-Офис"
+        snippet: "Совместимый отечественный офисный пакет для работы в среде Astra Linux."
+      - dst: "Кибер Бэкап"
+        snippet: "Резервное копирование серверов и виртуальных машин на базе Astra Linux."
+    analog_of:
+      - dst: "Microsoft Windows"
+        snippet: "Отечественная альтернатива ОС Windows для корпоративного сектора и госучреждений (импортозамещение)."
+
+  "Программы и лицензии Microsoft Corporation":
+    domain: "https://www.microsoft.com"
+    evidence_url: "https://www.microsoft.com/ru-ru/microsoft-365/business"
+    snippet: "Корпоративные офисные пакеты, операционные системы и серверные решения Microsoft."
+    aliases: ["Microsoft", "Майкрософт", "MS", "МС"]
+    complements:
+      - src: "Office"
+        dst: "Kaspersky"
+        snippet: "Базовый рабочий стек: офисный пакет и защита конечных точек."
+      - src: "Windows Server"
+        dst: "SQL Server"
+        snippet: "Серверная инфраструктура и система управления базами данных."
+    upsell_to:
+      - src: "Для дома и бизнеса"
+        dst: "Microsoft 365 Бизнес"
+        snippet: "Расширение локального офисного пакета до облачных сервисов, Exchange и совместной работы."
+
+  "1С":
+    domain: "https://1c.ru"
+    evidence_url: "https://v8.1c.ru"
+    snippet: "Платформа 1С:Предприятие и типовые решения для бухгалтерии, кадров, торговли и ERP."
+    aliases: ["1C", "1С:Предприятие", "1С Предприятие", "Фирма 1С"]
+    complements:
+      - dst: "КриптоПро CSP"
+        snippet: "Необходимо для работы с электронной подписью (КЭП), сдачи отчётности и ЭДО в 1С."
+      - dst: "Кибер Бэкап"
+        snippet: "Регулярное резервное копирование баз данных 1С для защиты от сбоев и шифровальщиков."
+    upsell_to:
+      - src: "Базовая"
+        dst: "ПРОФ"
+        snippet: "Переход на версию ПРОФ для многопользовательской сетевой работы и доработки конфигураций."
+
+  "КриптоПро":
+    domain: "https://cryptopro.ru"
+    evidence_url: "https://www.cryptopro.ru/products/csp"
+    snippet: "Средство криптографической защиты информации (СКЗИ) для электронной подписи и защищённых соединений."
+    aliases: ["Крипто Про", "Крипто-Про", "CryptoPro", "Crypto Pro", "СКЗИ"]
+    complements:
+      - dst: "1С:Бухгалтерия"
+        snippet: "Используется совместно с 1С и системами ЭДО для подписания юридически значимых документов."
+      - dst: "Контур"
+        snippet: "Совместимо с сервисами электронного документооборота и сдачи отчётности."
+
+  "Киберпротект":
+    domain: "https://cyberprotect.ru"
+    evidence_url: "https://cyberprotect.ru/products/backup/"
+    snippet: "Российская система резервного копирования и восстановления данных корпоративной инфраструктуры."
+    aliases: ["Кибер Протект", "CyberProtect", "Cyber Protect", "Кибер Бэкап", "Cyber Backup", "Акронис", "Acronis"]
+    complements:
+      - dst: "Astra Linux"
+        snippet: "Защита виртуальных машин, серверов и рабочих станций на отечественных ОС."
+      - dst: "Kaspersky"
+        snippet: "Эшелонированная защита от программ-вымогателей: антивирус + изолированный бэкап."
+
+  "Positive Technologies":
+    domain: "https://www.ptsecurity.com"
+    evidence_url: "https://www.ptsecurity.com/ru-ru/products/"
+    snippet: "Продукты для кибербезопасности: защита конечных точек (EPP), анализ защищённости (VM) и SIEM."
+    aliases: ["PT", "Позитив Текнолоджиз", "MaxPatrol", "МаксПатрол", "Max Patrol"]
+    complements:
+      - src: "MaxPatrol"
+        dst: "SIEM"
+        snippet: "Интеграция телеметрии конечных точек с системой мониторинга инцидентов ИБ."
+
+  AnyDesk:
+    domain: "https://anydesk.com"
+    evidence_url: "https://anydesk.com/ru"
+    snippet: "Быстрый кроссплатформенный инструмент удалённого рабочего стола и техподдержки."
+    aliases: ["Энидеск", "Эни деск", "Any Desk"]
+    analog_of:
+      - dst: "Ассистент"
+        snippet: "Российский аналог систем удалённого администрирования из Реестра отечественного ПО."
+      - dst: "RuDesktop"
+        snippet: "Отечественное решение для удалённого доступа и управления корпоративными АРМ."
+
+  "НПО Эшелон":
+    domain: "https://npo-echelon.ru"
+    evidence_url: "https://npo-echelon.ru/solutions/"
+    snippet: "Сертифицированные средства анализа защищённости, контроля уязвимостей и информационной безопасности."
+    aliases: ["Эшелон", "NPO Echelon", "Сканер ВС", "Сканер-ВС"]
+
+  "Р7-Офис":
+    domain: "https://r7-office.ru"
+    evidence_url: "https://r7-office.ru/enterprise"
+    snippet: "Российский офисный пакет для работы с документами, таблицами, презентациями и совместной работы."
+    aliases: ["Р7", "R7", "R7-Office", "R7 Office"]
+    analog_of:
+      - dst: "Microsoft Office"
+        snippet: "Полнофункциональная российская замена зарубежных офисных пакетов для бизнеса и госсектора."
+    complements:
+      - dst: "Astra Linux"
+        snippet: "Сертифицированная совместимость с отечественными операционными системами."
+
+  "МТС":
+    domain: "https://mts-link.ru"
+    evidence_url: "https://mts-link.ru/products/webinars/"
+    snippet: "Корпоративная платформа для видеоконференций, онлайн-встреч, вебинаров и обучения."
+    aliases: ["МТС Линк", "MTS Link", "Webinar", "Вебинар"]
+    analog_of:
+      - dst: "TrueConf"
+        snippet: "Платформа корпоративных видеокоммуникаций и ВКС."
+
+content_pages:
+  - title: "Вебинары и онлайн-мероприятия Softline (МТС Линк и др.)"
+    url: "https://store.softline.ru/webinar/"
+    aliases: ["вебинары", "webinar", "вебинар мтс", "мтс вебинары", "онлайн обучение"]
+    snippet: "Раздел обучающих вебинаров и мероприятий на store.softline.ru."
+  - title: "Киберпротект — решения резервного копирования"
+    url: "https://store.softline.ru/cyberprotect/?filter%5Bcategory%5D%5B%5D=1033"
+    aliases: ["кибер бэкап", "кибербэкап", "cyber backup", "резервное копирование киберпротект"]
+    snippet: "Категория систем резервного копирования Кибер Бэкап на store.softline.ru."
+
+external_products:
+  - name: "MDaemon Email Server"
+    vendor: "MDaemon Technologies"
+    aliases: ["MDaemon", "мдаемон", "мдемон", "mdaemon mail"]
+    evidence_url: "https://mdaemon.com/pages/mdaemon-email-server"
+    snippet: "Новые серверные лицензии MDaemon отсутствуют в каталоге (в наличии только продления); доступны российские аналоги."
+    analog_family_ids: []
+  - name: "Figma"
+    vendor: "Figma, Inc."
+    aliases: ["фигма", "figma design", "figma enterprise"]
+    evidence_url: "https://www.figma.com/pricing/"
+    snippet: "Облачный сервис для дизайна интерфейсов и прототипирования (отсутствует в текущем каталоге; доступны российские аналоги и графические редакторы)."
+    analog_family_ids: []
+  - name: "Notion"
+    vendor: "Notion Labs"
+    aliases: ["ноушн", "ноушен", "notion workspace"]
+    evidence_url: "https://www.notion.so/product"
+    snippet: "Платформа для баз знаний и совместной работы (отсутствует в текущем каталоге; доступны российские альтернативы)."
+    analog_family_ids: []

@@ -1,0 +1,11 @@
+query,target_url,target_kind,target_family_id,target_entity_id,present_in_feed,notes
+astra linux,https://store.softline.ru/astralinux/astra-linux-special-edition/,product,f_121231,e_family_f_121231,true,"matched=ALSE 1.8 на базе процес/а х86-64, «Орел», РУСБ.10015-10, эле (score=18.28)"
+Microsoft Office для дома и бизнеса,https://store.softline.ru/microsoft/microsoft-office-dlya-doma-i-biznesa-2024/,product,f_391338,e_family_f_391338,true,matched=Microsoft Office для дома и бизнеса 2024 (score=26.15)
+kaspersky small office security,https://store.softline.ru/kaspersky/kaspersky-small-office-security/,product,f_3761,e_family_f_3761,true,matched=Kaspersky Small Office Security Cross-grade на лицензию для  (score=18.76)
+крипто про csp 5.0,https://store.softline.ru/kripto-pro/cryptopro-csp/,product,f_22268,e_family_f_22268,true,matched=КриптоПро CSP версии 5.0 (Номер ЕРРП: 4332) (score=8.76)
+anydesk,https://store.softline.ru/anydesk/anydesk/,product,f_306539,e_family_f_306539,true,"matched=AnyDesk (лицензия), Standard Additional Managed Devices (bun (score=14.66)"
+кибер бэкап,https://store.softline.ru/cyberprotect/?filter%5Bcategory%5D%5B%5D=1033,category,f_444870,e_category_c_1033_programmnoe_obespechenie_dlya_rezervnogo_kopirovaniya,true,"CATEGORY filter; matched_family=Киберпротект Кибер Бэкап Старт (подписка на 1 год,"
+сканер-вс,https://store.softline.ru/npo-echelon/eshelon-skaner-vs/,product,f_46421,e_family_f_46421,true,matched=НПО «Эшелон» Сканер-ВС 7 (score=13.27)
+мтс,https://store.softline.ru/webinar/,content,f_414326,e_content_vebinary_i_onlayn_meropriyatiya_softline_mts_link_i_dr_https_sto,true,CONTENT page (https://store.softline.ru/webinar/); product_fallback=МТС Линк (Webinar Group) МТС Линк Optimum 30 (лице
+max patrol,https://store.softline.ru/positive-technologies/maxpatrol-endpoint-protection-platform/,product,f_437421,e_family_f_437421,true,matched=Positive Technologies MaxPatrol Endpoint Protection Platform (score=18.16)
+365,https://store.softline.ru/microsoft/microsoft-365-for-family/,product,f_165034,e_family_f_165034,true,matched=Microsoft 365 для семьи (Family) 6GQ-00084: подписка на 6 по (score=21.15)
