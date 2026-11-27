@@ -366,8 +366,12 @@ def analyze_qu_rules(
         scores[ProductClass.software.value] += 0.75
         confidence = max(confidence, 0.7)
 
+    # Корректное определение интента и защита класса ПО для аналогов
     if "analog" in attrs.modifiers:
         intent = "find_analog"
+        if not any(h in nq.query_norm for h in ("сервер", "коммутатор", "роутер", "принтер", "мфу", "ибп", "ноутбук", "железо", "оборудование")):
+            scores[ProductClass.software.value] += 2.0
+            scores[ProductClass.hardware.value] = 0.0
     elif "ru_registry" in attrs.modifiers:
         intent = "find_ru_analog"
     elif assigned_hits and not is_homonym:
@@ -403,12 +407,14 @@ def analyze_qu_rules(
     qu_cfg = cfg.qu
     if qu_cfg.escalate_on_low_confidence and confidence < qu_cfg.qu_confidence_threshold:
         reasons.append("low_confidence")
-    if len(content_tokens) >= qu_cfg.escalate_min_tokens_for_nl and not assigned_hits and not brand_hit_found:
+    if len(content_tokens) >= qu_cfg.escalate_min_tokens_for_nl and (not brand_hit_found or "analog" in attrs.modifiers):
         reasons.append("nl_query")
     if is_homonym and not is_bare_noun:
         reasons.append("homonym")
-    if "analog" in attrs.modifiers and not assigned_hits:
-        reasons.append("analog_without_entity")
+    # Поиск аналога всегда эскалируется к LLM для подбора альтернатив
+    if "analog" in attrs.modifiers:
+        reasons.append("analog_intent")
+        confidence = min(confidence, 0.55)
 
     return QuResult(
         intent=intent,
